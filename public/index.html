@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velmora - Advanced Web Scraper Platform</title>
+    <meta name="description" content="Professional web scraping platform with real-time data aggregation, news monitoring, stock tracking, and custom scrapers">
+    <meta name="keywords" content="web scraping, news aggregation, stock tracking, data monitoring, real-time">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --secondary-color: #8B5CF6;
+            --accent-color: #F59E0B;
+            --success-color: #10B981;
+            --error-color: #EF4444;
+            --warning-color: #F59E0B;
+            --dark-bg: #0F172A;
+            --card-bg: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border-color: #334155;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading-shimmer {
+            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .pulse-dot {
+            animation: pulse-dot 2s infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .scroll-smooth {
+            scroll-behavior: smooth;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background: var(--success-color); }
+        .status-offline { background: var(--error-color); }
+        .status-warning { background: var(--warning-color); }
+        
+        .metric-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .article-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background: var(--card-bg);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast-success { background: var(--success-color); }
+        .toast-error { background: var(--error-color); }
+        .toast-warning { background: var(--warning-color); }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content.sidebar-hidden {
+            margin-left: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        .dark-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .dark-scrollbar::-webkit-scrollbar-track {
+            background: var(--card-bg);
+        }
+        
+        .dark-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .nav-item:hover {
+            background: var(--hover-bg);
+            color: var(--text-primary);
+        }
+        
+        .nav-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body class="dark-scrollbar">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-rocket text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">Velmora</h1>
+                    <p class="text-sm text-gray-400">Advanced Scraper</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="p-4">
+            <div class="space-y-2">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="news-scraper">
+                    <i class="fas fa-newspaper"></i>
+                    <span>News Scraper</span>
+                </a>
+                <a href="#" class="nav-item" data-section="stock-tracker">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Stock Tracker</span>
+                </a>
+                <a href="#" class="nav-item" data-section="crypto-monitor">
+                    <i class="fab fa-bitcoin"></i>
+                    <span>Crypto Monitor</span>
+                </a>
+                <a href="#" class="nav-item" data-section="ecommerce">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>E-commerce</span>
+                </a>
+                <a href="#" class="nav-item" data-section="social">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Social Media</span>
+                </a>
+                <a href="#" class="nav-item" data-section="custom-scraper">
+                    <i class="fas fa-cog"></i>
+                    <span>Custom Scraper</span>
+                </a>
+                <a href="#" class="nav-item" data-section="history">
+                    <i class="fas fa-history"></i>
+                    <span>History</span>
+                </a>
+                <a href="#" class="nav-item" data-section="settings">
+                    <i class="fas fa-settings"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium" id="user-name">Guest User</p>
+                    <p class="text-xs text-gray-400" id="user-status">Free Plan</p>
+                </div>
+                <button class="btn-secondary" id="auth-btn" onclick="toggleAuth()">
+                    <i class="fas fa-sign-in-alt"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <!-- Header -->
+        <header class="bg-slate-800 border-b border-gray-700 p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button class="btn-secondary lg:hidden" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-xl font-semibold" id="page-title">Dashboard</h2>
+                    <div class="flex items-center gap-2">
+                        <span class="status-indicator pulse-dot" id="connection-status"></span>
+                        <span class="text-sm text-gray-400" id="connection-text">Connected</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <input type="text" 
+                               placeholder="Search..." 
+                               class="bg-slate-700 text-white px-4 py-2 rounded-lg pl-10 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               id="global-search-input">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    <button class="btn-primary" id="start-scraping-btn">
+                        <i class="fas fa-play"></i>
+                        <span>Start Scraping</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Content Sections -->
+        <main class="p-6">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="section active">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Total Scraped</p>
+                                <p class="text-2xl font-bold" id="total-scraped">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-database text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Success Rate</p>
+                                <p class="text-2xl font-bold" id="success-rate">0%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Active Jobs</p>
+                                <p class="text-2xl font-bold" id="active-jobs">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Last Update</p>
+                                <p class="text-sm" id="last-update">Never</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-refresh text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                        <div class="space-y-4" id="recent-activity">
+                            <div class="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-newspaper text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm">News scraping completed</p>
+                                    <p class="text-xs text-gray-400">2 minutes ago</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="recent-activity-list">
+                            <!-- Recent activity items will be added here -->
+                        </div>
+                    </div>
+                    
+                                    <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Performance Chart</h3>
+                    <canvas id="performance-chart" width="400" height="200"></canvas>
+                </div>
+                
+                <!-- Global Search Results -->
+                <div class="glass-card p-6" id="global-search-results-section" style="display: none;">
+                    <h3 class="text-lg font-semibold mb-4">Search Results</h3>
+                    <div id="global-search-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Global search results will be displayed here -->
+                    </div>
+                </div>
+                </div>
+            </section>
+            
+
+            
+            <!-- News Scraper Section -->
+            <section id="news-scraper" class="dashboard-section hidden">
+                <h2 class="text-2xl font-bold mb-6 text-white">News Scraper</h2>
+                <div class="glass-card p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <input type="text" id="news-keywords" placeholder="Enter keywords..." class="bg-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="news-category" class="bg-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="general">General</option>
+                            <option value="business">Business</option>
+                            <option value="technology">Technology</option>
+                            <option value="sports">Sports</option>
+                        </select>
+                        <select id="news-source" class="bg-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">All Sources</option>
+                            <option value="bbc">BBC</option>
+                            <option value="cnn">CNN</option>
+                            <option value="reuters">Reuters</option>
+                        </select>
+                    </div>
+                    <button id="scrape-news-btn" class="btn-primary">
+                        <i class="fas fa-search"></i>
+                        Scrape News
+                    </button>
+                </div>
+                <div id="news-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- News results will be displayed here -->
+                </div>
+            </section>
+
+            <!-- Stock Tracker Section -->
+            <section id="stock-tracker" class="dashboard-section hidden">
+                <h2 class="text-2xl font-bold mb-6 text-white">Stock Tracker</h2>
+                <div id="stock-data-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Stock data will be displayed here -->
+                </div>
+            </section>
+
+            <!-- Crypto Monitor Section -->
+            <section id="crypto-monitor" class="dashboard-section hidden">
+                <h2 class="text-2xl font-bold mb-6 text-white">Crypto Monitor</h2>
+                <div id="crypto-data-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Crypto data will be displayed here -->
+                </div>
+            </section>
+
+            <!-- Custom Scraper Section -->
+            <section id="custom-scraper" class="dashboard-section hidden p-6 bg-slate-800 rounded-lg">
+              <h2 class="text-3xl font-bold mb-6 text-white">User-Friendly Custom Scraper</h2>
+              <p class="text-slate-400 mb-8">
+                No need for complex selectors. Just enter a URL, and we'll automatically extract the key information for you.
+              </p>
+              
+              <div class="bg-slate-900 p-6 rounded-lg shadow-lg">
+                <div class="flex items-center space-x-4">
+                  <input type="url" id="custom-url-input" class="flex-grow bg-slate-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter any website URL...">
+                  <button id="start-custom-scrape-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                    <i class="fas fa-magic mr-2"></i> Auto Scrape
+                  </button>
+                </div>
+              </div>
+
+              <div id="custom-results-container" class="mt-8">
+                <!-- Custom scraping results will be displayed here -->
+              </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="history-section" class="section">
+                <h2 class="text-2xl font-bold mb-4 text-white">Scraping History</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="history-grid">
+                    <!-- History items will be dynamically loaded here -->
+                </div>
+            </section>
+            
+            <!-- Settings Section -->
+            <section id="settings-section" class="section">
+                <h2 class="text-2xl font-bold mb-4 text-white">Settings</h2>
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Account</h3>
+                    <p class="text-gray-400 mb-4">Current Plan: <span id="current-plan">Free</span></p>
+                    <button class="btn-primary" onclick="upgradePlan()">Upgrade Plan</button>
+                </div>
+                <div class="mt-6 glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">API Keys</h3>
+                    <p class="text-gray-400 mb-4">API Key: <span id="api-key">None</span></p>
+                    <button class="btn-secondary" onclick="generateApiKey()">Generate New</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modals -->
+    <div id="article-modal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-700 flex items-center justify-between">
+                <h3 class="text-xl font-semibold" id="modal-title">Article Details</h3>
+                <button class="text-gray-400 hover:text-white" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6" id="modal-body">
+                <!-- Article content will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast notifications -->
+    <div id="toast-container"></div>
+    
+    <!-- Notification container -->
+    <div id="notification-container" class="fixed top-5 right-5 z-50"></div>
+    
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+        <div class="bg-slate-800 p-6 rounded-lg">
+            <div class="flex items-center gap-3">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <span id="loading-text">Loading...</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const socket = io("http://localhost:3000", {
+            transports: ['websocket', 'polling']
+          });
+
+          // --- DOM Element Selection ---
+          const navItems = document.querySelectorAll('.nav-item');
+          const sections = document.querySelectorAll('.dashboard-section');
+          const globalSearchInput = document.getElementById('global-search-input');
+          const startScrapingBtn = document.getElementById('start-scraping-btn');
+          
+          // Section: News Scraper
+          const newsKeywordsInput = document.getElementById('news-keywords');
+          const newsCategorySelect = document.getElementById('news-category');
+          const newsSourceSelect = document.getElementById('news-source');
+          const scrapeNewsBtn = document.getElementById('scrape-news-btn');
+          const newsResultsContainer = document.getElementById('news-results-container');
+
+          // Section: Data Containers
+          const stockDataContainer = document.getElementById('stock-data-container');
+          const cryptoDataContainer = document.getElementById('crypto-data-container');
+
+          // Section: Custom Scraper
+          const customUrlInput = document.getElementById('custom-url-input');
+          const startCustomScrapeBtn = document.getElementById('start-custom-scrape-btn');
+          const customResultsContainer = document.getElementById('custom-results-container');
+          
+          // --- Notifications & Activity ---
+          const notificationContainer = document.getElementById('notification-container');
+          const recentActivityList = document.getElementById('recent-activity-list');
+          
+          // --- Global Search Results ---
+          const globalSearchResultsSection = document.getElementById('global-search-results-section');
+          const globalSearchResultsContainer = document.getElementById('global-search-results-container');
+
+          // --- Initial Setup ---
+          function initializeApp() {
+            const initialSection = 'dashboard';
+            const sectionElement = document.getElementById(initialSection);
+            if (sectionElement) {
+              sectionElement.classList.remove('hidden');
+            }
+            const activeNavItem = document.querySelector(`.nav-item[data-section="${initialSection}"]`);
+            if (activeNavItem) {
+              activeNavItem.classList.add('active');
+            }
+            loadSectionData(initialSection);
+          }
+
+          // --- Socket.IO Event Handlers ---
+          socket.on('connect', () => {
+            console.log('✅ WebSocket connection established.');
+            showNotification('Connected to server', 'success');
+          });
+
+          socket.on('disconnect', () => {
+            console.log('❌ WebSocket connection lost.');
+            showNotification('Disconnected from server', 'error');
+          });
+          
+          socket.on('scrape_update', (result) => {
+            // Check if this is a global search (from dashboard) or section-specific search
+            const currentSection = document.querySelector('.nav-item.active')?.getAttribute('data-section');
+            
+            if (currentSection === 'dashboard') {
+              // Global search - show results on dashboard
+              handleGlobalSearchResponse(result);
+            } else {
+              // Section-specific search - show in section container
+              handleScrapeResponse(result, 'News', newsResultsContainer, renderNews);
+            }
+          });
+
+          socket.on('custom_scrape_update', (result) => {
+            handleScrapeResponse(result, 'Custom', customResultsContainer, renderCustomResults);
+          });
+
+          function handleScrapeResponse(result, type, container, renderer) {
+            if (result.success) {
+              showNotification(result.message, 'success');
+              renderer(result.data);
+              addRecentActivity(`${type} scraping finished successfully.`, 'success');
+            } else {
+              showNotification(result.message || `Failed to get ${type.toLowerCase()} data.`, 'error');
+              container.innerHTML = `<p class="text-red-400 text-center">${result.message}</p>`;
+            }
+          }
+          
+          function handleGlobalSearchResponse(result) {
+            if (result.success) {
+              showNotification(result.message, 'success');
+              // Show the search results section
+              globalSearchResultsSection.style.display = 'block';
+              // Render the results
+              renderNews(result.data, globalSearchResultsContainer);
+              addRecentActivity(`Global search completed: <strong>${result.data.length} articles found</strong>`, 'success');
+            } else {
+              showNotification(result.message || 'Search failed', 'error');
+              globalSearchResultsContainer.innerHTML = `<p class="text-red-400 text-center">${result.message}</p>`;
+              globalSearchResultsSection.style.display = 'block';
+            }
+          }
+
+          // --- Navigation ---
+          navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+              e.preventDefault();
+              const sectionId = item.getAttribute('data-section');
+              
+              navItems.forEach(nav => nav.classList.remove('active'));
+              item.classList.add('active');
+              
+              sections.forEach(section => section.classList.add('hidden'));
+              const targetSection = document.getElementById(sectionId);
+              if(targetSection) {
+                targetSection.classList.remove('hidden');
+              }
+              
+              loadSectionData(sectionId);
+            });
+          });
+
+          // --- Data Loading & Section Logic ---
+          function loadSectionData(sectionId) {
+            console.log(`Loading data for section: ${sectionId}`);
+            switch (sectionId) {
+              case 'dashboard': loadDashboardData(); break;
+              case 'news-scraper': loadNewsData(); break;
+              case 'stock-tracker': loadStockData(); break;
+              case 'crypto-monitor': loadCryptoData(); break;
+              case 'custom-scraper':
+                customResultsContainer.innerHTML = '<p class="text-center text-slate-500">Enter a URL to start scraping.</p>';
+                break;
+              default:
+                const section = document.getElementById(sectionId);
+                if (section) {
+                  section.innerHTML = `<div class="text-center p-8"><h3 class="text-xl text-slate-400">Coming Soon!</h3><p class="text-slate-500">This feature is under development.</p></div>`;
+                }
+            }
+          }
+
+          // --- Event Listeners ---
+          if(startScrapingBtn) {
+            startScrapingBtn.addEventListener('click', handleGlobalSearch);
+          }
+          if(globalSearchInput) {
+            globalSearchInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleGlobalSearch());
+          }
+          if(scrapeNewsBtn) {
+            scrapeNewsBtn.addEventListener('click', handleNewsScrape);
+          }
+          if(startCustomScrapeBtn) {
+            startCustomScrapeBtn.addEventListener('click', handleCustomScrape);
+          }
+
+          function handleGlobalSearch() {
+            const query = globalSearchInput.value.trim();
+            if (!query) return showNotification('Please enter a search term.', 'error');
+            
+            // Clear previous results
+            globalSearchResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="text-slate-400 mt-2">Searching...</p></div>';
+            globalSearchResultsSection.style.display = 'block';
+            
+            showNotification(`Searching for "${query}"...`);
+            socket.emit('scrape_request', { type: 'news', query });
+            addRecentActivity(`Global search started for: <strong>${query}</strong>`);
+          }
+
+          function handleNewsScrape() {
+            const keywords = newsKeywordsInput.value.trim();
+            if (!keywords) return showNotification('Please enter keywords.', 'error');
+            
+            const request = {
+              type: 'news',
+              query: keywords,
+              category: newsCategorySelect.value,
+              source: newsSourceSelect.value
+            };
+            
+            showNotification(`Scraping news for "${keywords}"...`);
+            socket.emit('scrape_request', request);
+            addRecentActivity(`News scraping started for: <strong>${keywords}</strong>`);
+          }
+
+          function handleCustomScrape() {
+            const url = customUrlInput.value.trim();
+            if (!url) return showNotification('Please enter a URL.', 'error');
+            showNotification(`Starting auto-scrape for "${url}"...`);
+            customResultsContainer.innerHTML = '<div class="text-center py-4"><div class="loader"></div><p class="text-slate-400 mt-2">Analyzing page...</p></div>';
+            socket.emit('custom_scrape_request', { url });
+            addRecentActivity(`Custom scraping started for: <strong>${url}</strong>`);
+          }
+
+          // --- API Fetching for Initial Data ---
+          async function loadDashboardData() { /* ...logic for dashboard... */ }
+          async function loadNewsData() { newsResultsContainer.innerHTML = '<p class="text-center text-slate-500">Use the controls above to find news articles.</p>'; }
+          async function loadStockData() { fetchAndRender('/api/scrape/stocks', stockDataContainer, renderStocks); }
+          async function loadCryptoData() { fetchAndRender('/api/scrape/crypto', cryptoDataContainer, renderCrypto); }
+          
+          async function fetchAndRender(endpoint, container, renderer) {
+            try {
+              const res = await fetch(endpoint);
+              if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+              const result = await res.json();
+              if (result.success) {
+                renderer(result.data, container);
+              } else {
+                throw new Error(result.message || 'API request failed');
+              }
+            } catch (e) {
+              console.error(`Failed to load data from ${endpoint}:`, e);
+              container.innerHTML = `<p class="text-red-400 text-center">Could not load data. ${e.message}</p>`;
+            }
+          }
+
+          // --- Rendering Functions ---
+          function renderStocks(data, container) {
+            if (!data || data.length === 0) return container.innerHTML = '<p class="text-center text-slate-500">No stock data available.</p>';
+            container.innerHTML = data.map(stock => `
+              <div class="bg-slate-800 p-4 rounded-lg">
+                <h4 class="text-lg font-bold text-white">${stock.name} (${stock.symbol})</h4>
+                <p class="text-2xl text-green-400">$${stock.price.toFixed(2)}</p>
+                <p class="${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}">${stock.change.toFixed(2)} (${stock.changePercent.toFixed(2)}%)</p>
+              </div>`).join('');
+          }
+
+          function renderCrypto(data, container) {
+            if (!data || data.length === 0) return container.innerHTML = '<p class="text-center text-slate-500">No crypto data available.</p>';
+            container.innerHTML = data.map(crypto => `
+              <div class="bg-slate-800 p-4 rounded-lg">
+                <h4 class="text-lg font-bold text-white">${crypto.name} (${crypto.symbol})</h4>
+                <p class="text-2xl text-cyan-400">$${crypto.price.toFixed(2)}</p>
+                <p class="${crypto.change >= 0 ? 'text-green-500' : 'text-red-500'}">${crypto.change.toFixed(2)} (${crypto.changePercent.toFixed(2)}%)</p>
+              </div>`).join('');
+          }
+
+          function renderNews(data, container = newsResultsContainer) {
+            if (!data || data.length === 0) return container.innerHTML = '<p class="text-center text-slate-500">No articles found for your query.</p>';
+            container.innerHTML = data.map(article => `
+              <div class="bg-slate-800 p-4 rounded-lg">
+                <h4 class="text-lg font-bold text-white">${article.title}</h4>
+                <p class="text-slate-400">${article.content}</p>
+                <span class="text-sm text-blue-400">${article.source}</span>
+              </div>`).join('');
+          }
+
+          function renderCustomResults(data, container = customResultsContainer) {
+            container.innerHTML = `
+              <div class="bg-slate-900 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-white mb-4">${data.title}</h3>
+                <div class="mb-4">
+                  <h4 class="font-semibold text-slate-300 mb-2">Headings:</h4>
+                  <ul class="list-disc list-inside text-slate-400">${data.headings.map(h => `<li>${h}</li>`).join('')}</ul>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-slate-300 mb-2">Links:</h4>
+                  <ul class="list-disc list-inside text-slate-400">${data.links.map(l => `<li><a href="${l.href}" target="_blank" class="text-blue-400 hover:underline">${l.text}</a></li>`).join('')}</ul>
+                </div>
+              </div>`;
+          }
+          
+          // --- UI Helpers ---
+          function showNotification(message, type = 'info') {
+            const colors = { info: 'bg-blue-500', success: 'bg-green-500', error: 'bg-red-500' };
+            const notification = document.createElement('div');
+            notification.className = `fixed top-5 right-5 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in-out ${colors[type]}`;
+            notification.textContent = message;
+            notificationContainer.appendChild(notification);
+            setTimeout(() => notification.remove(), 4000);
+          }
+
+          function addRecentActivity(html, type = 'info') {
+            const icons = { info: 'fa-info-circle text-blue-400', success: 'fa-check-circle text-green-400', error: 'fa-exclamation-triangle text-red-400' };
+            const item = document.createElement('div');
+            item.className = 'flex items-start space-x-3 p-3 bg-slate-800/50 rounded-lg';
+            item.innerHTML = `
+              <i class="fas ${icons[type]} mt-1"></i>
+              <div>
+                <p class="text-sm text-slate-300">${html}</p>
+                <p class="text-xs text-slate-500">${new Date().toLocaleTimeString()}</p>
+              </div>`;
+            recentActivityList.prepend(item);
+            if (recentActivityList.children.length > 5) {
+              recentActivityList.lastChild.remove();
+            }
+          }
+
+          // --- Let's Go! ---
+          initializeApp();
+        });
+    </script>
+</body>
+</html> 
