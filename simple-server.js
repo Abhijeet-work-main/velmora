@@ -75,9 +75,15 @@ io.on('connection', (socket) => {
     
     try {
       if (data.type === 'news') {
+        // Check if API key is available
+        if (!process.env.NEWS_API_KEY) {
+          throw new Error('News API key not configured. Please set NEWS_API_KEY environment variable.');
+        }
+        
         // Use News API for real news search
         const newsApiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(data.query)}&apiKey=${process.env.NEWS_API_KEY}&language=en&sortBy=publishedAt&pageSize=20`;
         
+        console.log(`🔍 Searching News API for: ${data.query}`);
         const response = await axios.get(newsApiUrl);
         
         if (response.data.status === 'ok' && response.data.articles) {
@@ -98,7 +104,7 @@ io.on('connection', (socket) => {
           });
           console.log(`✅ Sent ${articles.length} real news articles for: ${data.query}`);
         } else {
-          throw new Error('No articles found');
+          throw new Error('No articles found or API response error');
         }
       } else {
         // Fallback for other types
@@ -117,9 +123,19 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.error(`❌ Error searching for "${data.query}":`, error.message);
       
+      // Provide more helpful error messages
+      let errorMessage = error.message;
+      if (error.message.includes('API key')) {
+        errorMessage = 'API configuration error. Please check environment variables on Render dashboard.';
+      } else if (error.response && error.response.status === 401) {
+        errorMessage = 'Invalid API key. Please check NEWS_API_KEY in environment variables.';
+      } else if (error.response && error.response.status === 429) {
+        errorMessage = 'API rate limit reached. Please try again later.';
+      }
+      
       socket.emit('scrape_update', {
         success: false,
-        message: `Error searching for "${data.query}": ${error.message}`,
+        message: `Error searching for "${data.query}": ${errorMessage}`,
         data: [],
         timestamp: new Date().toISOString()
       });
@@ -130,52 +146,95 @@ io.on('connection', (socket) => {
     console.log(`▶️ Received custom scrape request for URL: ${data.url}`);
     
     try {
-      const puppeteer = require('puppeteer');
-      
-      const browser = await puppeteer.launch({
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      
-      const page = await browser.newPage();
-      await page.goto(data.url, { waitUntil: 'networkidle2', timeout: 30000 });
-      
-      // Extract content automatically
-      const result = await page.evaluate(() => {
-        const title = document.title || document.querySelector('h1')?.textContent || 'No title found';
+      // Check if Puppeteer is available (for local development)
+      let usePuppeteer = false;
+      try {
+        require.resolve('puppeteer');
+        usePuppeteer = process.env.NODE_ENV !== 'production'; // Only use locally
+      } catch (e) {
+        usePuppeteer = false;
+      }
+
+      if (usePuppeteer) {
+        // Use Puppeteer for local development
+        const puppeteer = require('puppeteer');
         
-        const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
-          .map(h => h.textContent.trim())
-          .filter(text => text.length > 0)
-          .slice(0, 10);
+        const browser = await puppeteer.launch({
+          headless: 'new',
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
         
-        const links = Array.from(document.querySelectorAll('a[href]'))
-          .map(a => ({
-            text: a.textContent.trim(),
-            href: a.href
-          }))
-          .filter(link => link.text.length > 0)
-          .slice(0, 10);
+        const page = await browser.newPage();
+        await page.goto(data.url, { waitUntil: 'networkidle2', timeout: 30000 });
         
-        const paragraphs = Array.from(document.querySelectorAll('p'))
-          .map(p => p.textContent.trim())
-          .filter(text => text.length > 0)
-          .slice(0, 5);
+        // Extract content automatically
+        const result = await page.evaluate(() => {
+          const title = document.title || document.querySelector('h1')?.textContent || 'No title found';
+          
+          const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+            .map(h => h.textContent.trim())
+            .filter(text => text.length > 0)
+            .slice(0, 10);
+          
+          const links = Array.from(document.querySelectorAll('a[href]'))
+            .map(a => ({
+              text: a.textContent.trim(),
+              href: a.href
+            }))
+            .filter(link => link.text.length > 0)
+            .slice(0, 10);
+          
+          const paragraphs = Array.from(document.querySelectorAll('p'))
+            .map(p => p.textContent.trim())
+            .filter(text => text.length > 0)
+            .slice(0, 5);
+          
+          return { title, headings, links, paragraphs };
+        });
         
-        return { title, headings, links, paragraphs };
-      });
-      
-      await browser.close();
-      
-      socket.emit('custom_scrape_update', {
-        success: true,
-        message: `Successfully scraped content from ${data.url}`,
-        data: result,
-        url: data.url,
-        timestamp: new Date().toISOString()
-      });
-      
-      console.log(`✅ Successfully scraped: ${data.url}`);
+        await browser.close();
+        
+        socket.emit('custom_scrape_update', {
+          success: true,
+          message: `Successfully scraped content from ${data.url}`,
+          data: result,
+          url: data.url,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log(`✅ Successfully scraped: ${data.url}`);
+      } else {
+        // Fallback for production (Render) - use simple HTTP request
+        const response = await axios.get(data.url, {
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
+        
+        const cheerio = require('cheerio');
+        const $ = cheerio.load(response.data);
+        
+        const result = {
+          title: $('title').text() || $('h1').first().text() || 'No title found',
+          headings: $('h1, h2, h3, h4, h5, h6').map((i, el) => $(el).text().trim()).get().filter(text => text.length > 0).slice(0, 10),
+          links: $('a[href]').map((i, el) => ({
+            text: $(el).text().trim(),
+            href: $(el).attr('href')
+          })).get().filter(link => link.text.length > 0).slice(0, 10),
+          paragraphs: $('p').map((i, el) => $(el).text().trim()).get().filter(text => text.length > 0).slice(0, 5)
+        };
+        
+        socket.emit('custom_scrape_update', {
+          success: true,
+          message: `Successfully scraped content from ${data.url} (HTTP method)`,
+          data: result,
+          url: data.url,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log(`✅ Successfully scraped: ${data.url} (HTTP method)`);
+      }
       
     } catch (error) {
       console.error(`❌ Error scraping "${data.url}":`, error.message);
