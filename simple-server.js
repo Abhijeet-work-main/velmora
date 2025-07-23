@@ -64,27 +64,35 @@ const mockCrypto = [
 
 // Socket.IO Connection
 io.on('connection', (socket) => {
-  console.log('✅ A user connected via WebSocket');
+  console.log('✅ A user connected via WebSocket', socket.id);
   
   socket.on('disconnect', () => {
-    console.log('❌ User disconnected');
+    console.log('❌ User disconnected', socket.id);
   });
 
   socket.on('scrape_request', async (data) => {
-    console.log(`▶️ Received scrape request for: ${data.query}`);
+    console.log(`▶️ [DEBUG] Received scrape request:`, JSON.stringify(data, null, 2));
+    console.log(`▶️ [DEBUG] Socket ID: ${socket.id}`);
+    console.log(`▶️ [DEBUG] Environment check - NEWS_API_KEY exists: ${!!process.env.NEWS_API_KEY}`);
     
     try {
       if (data.type === 'news') {
         // Check if API key is available
         if (!process.env.NEWS_API_KEY) {
+          console.log('❌ [DEBUG] NEWS_API_KEY is missing!');
           throw new Error('News API key not configured. Please set NEWS_API_KEY environment variable.');
         }
+        
+        console.log(`🔍 [DEBUG] NEWS_API_KEY found: ${process.env.NEWS_API_KEY.substring(0, 8)}...`);
         
         // Use News API for real news search
         const newsApiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(data.query)}&apiKey=${process.env.NEWS_API_KEY}&language=en&sortBy=publishedAt&pageSize=20`;
         
-        console.log(`🔍 Searching News API for: ${data.query}`);
+        console.log(`🔍 [DEBUG] Making API request to: ${newsApiUrl.replace(process.env.NEWS_API_KEY, 'API_KEY_HIDDEN')}`);
         const response = await axios.get(newsApiUrl);
+        
+        console.log(`📡 [DEBUG] API Response status: ${response.status}`);
+        console.log(`📡 [DEBUG] API Response data keys: ${Object.keys(response.data)}`);
         
         if (response.data.status === 'ok' && response.data.articles) {
           const articles = response.data.articles.map(article => ({
@@ -96,6 +104,8 @@ io.on('connection', (socket) => {
             urlToImage: article.urlToImage
           }));
           
+          console.log(`✅ [DEBUG] Processed ${articles.length} articles, emitting to socket ${socket.id}`);
+          
           socket.emit('scrape_update', {
             success: true,
             message: `Found ${articles.length} articles for "${data.query}"`,
@@ -104,9 +114,11 @@ io.on('connection', (socket) => {
           });
           console.log(`✅ Sent ${articles.length} real news articles for: ${data.query}`);
         } else {
+          console.log(`❌ [DEBUG] API response indicates no articles or error:`, response.data);
           throw new Error('No articles found or API response error');
         }
       } else {
+        console.log(`📝 [DEBUG] Non-news request, sending mock data for: ${data.query}`);
         // Fallback for other types
         const mockResult = {
           success: true,
@@ -121,7 +133,8 @@ io.on('connection', (socket) => {
         console.log(`✅ Sent mock results for: ${data.query}`);
       }
     } catch (error) {
-      console.error(`❌ Error searching for "${data.query}":`, error.message);
+      console.error(`❌ [DEBUG] Error in scrape_request handler:`, error);
+      console.error(`❌ [DEBUG] Error stack:`, error.stack);
       
       // Provide more helpful error messages
       let errorMessage = error.message;
@@ -129,9 +142,13 @@ io.on('connection', (socket) => {
         errorMessage = 'API configuration error. Please check environment variables on Render dashboard.';
       } else if (error.response && error.response.status === 401) {
         errorMessage = 'Invalid API key. Please check NEWS_API_KEY in environment variables.';
+        console.log(`❌ [DEBUG] API returned 401 - Invalid API key`);
       } else if (error.response && error.response.status === 429) {
         errorMessage = 'API rate limit reached. Please try again later.';
+        console.log(`❌ [DEBUG] API returned 429 - Rate limit exceeded`);
       }
+      
+      console.log(`📤 [DEBUG] Emitting error response to socket ${socket.id}: ${errorMessage}`);
       
       socket.emit('scrape_update', {
         success: false,
