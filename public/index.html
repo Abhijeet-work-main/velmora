@@ -541,6 +541,14 @@
                 </div>
             </section>
 
+            <!-- E-commerce Section -->
+            <section id="ecommerce" class="dashboard-section hidden">
+                <h2 class="text-2xl font-bold mb-6 text-white">E-commerce</h2>
+                <div id="ecommerce-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- E-commerce results will be displayed here -->
+                </div>
+            </section>
+
             <!-- Custom Scraper Section -->
             <section id="custom-scraper" class="dashboard-section hidden p-6 bg-slate-800 rounded-lg">
               <h2 class="text-3xl font-bold mb-6 text-white">User-Friendly Custom Scraper</h2>
@@ -640,6 +648,7 @@
           // Section: Data Containers
           const stockDataContainer = document.getElementById('stock-data-container');
           const cryptoDataContainer = document.getElementById('crypto-data-container');
+          const ecommerceResultsContainer = document.getElementById('ecommerce-results-container');
 
           // Section: Custom Scraper
           const customUrlInput = document.getElementById('custom-url-input');
@@ -749,6 +758,7 @@
               case 'news-scraper': loadNewsData(); break;
               case 'stock-tracker': loadStockData(); break;
               case 'crypto-monitor': loadCryptoData(); break;
+              case 'ecommerce': loadEcommerceData(); break;
               case 'custom-scraper':
                 customResultsContainer.innerHTML = '<p class="text-center text-slate-500">Enter a URL to start scraping.</p>';
                 break;
@@ -817,7 +827,10 @@
           async function loadNewsData() { newsResultsContainer.innerHTML = '<p class="text-center text-slate-500">Use the controls above to find news articles.</p>'; }
           async function loadStockData() { fetchAndRender('/api/scrape/stocks', stockDataContainer, renderStocks); }
           async function loadCryptoData() { fetchAndRender('/api/scrape/crypto', cryptoDataContainer, renderCrypto); }
-          
+          function loadEcommerceData() {
+            fetchAndRender('/api/scrape/ecommerce', ecommerceResultsContainer, renderEcommerce);
+          }
+
           async function fetchAndRender(endpoint, container, renderer) {
             try {
               const res = await fetch(endpoint);
@@ -864,6 +877,20 @@
                 <span class="text-sm text-blue-400">${article.source}</span>
               </div>`).join('');
           }
+
+          function renderEcommerce(data, container) {
+            if (!data || (Array.isArray(data) && data.length === 0)) {
+                return container.innerHTML = '<p class="text-center text-slate-500">No products found.</p>';
+            }
+            const products = Array.isArray(data) ? data : [data];
+            container.innerHTML = products.map(product => `
+                <div class="bg-slate-800 p-4 rounded-lg">
+                    <h4 class="text-lg font-bold text-white">${product.product_title || product.title || 'No Title'}</h4>
+                    <p class="text-slate-400">${product.product_price ? '$' + product.product_price : ''}</p>
+                    <span class="text-sm text-blue-400">${product.asin || ''}</span>
+                </div>
+            `).join('');
+}
 
           function renderCustomResults(data, container = customResultsContainer) {
             container.innerHTML = `
