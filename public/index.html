@@ -689,14 +689,21 @@
           });
           
           socket.on('scrape_update', (result) => {
+            console.log('🔍 [FRONTEND DEBUG] Received scrape_update:', result);
+            console.log('🔍 [FRONTEND DEBUG] Result success:', result.success);
+            console.log('🔍 [FRONTEND DEBUG] Result data length:', result.data ? result.data.length : 'No data');
+            
             // Check if this is a global search (from dashboard) or section-specific search
             const currentSection = document.querySelector('.nav-item.active')?.getAttribute('data-section');
+            console.log('🔍 [FRONTEND DEBUG] Current section:', currentSection);
             
             if (currentSection === 'dashboard') {
               // Global search - show results on dashboard
+              console.log('🔍 [FRONTEND DEBUG] Handling as global search');
               handleGlobalSearchResponse(result);
             } else {
               // Section-specific search - show in section container
+              console.log('🔍 [FRONTEND DEBUG] Handling as section-specific search');
               handleScrapeResponse(result, 'News', newsResultsContainer, renderNews);
             }
           });
@@ -717,14 +724,22 @@
           }
           
           function handleGlobalSearchResponse(result) {
+            console.log('🎯 [FRONTEND DEBUG] handleGlobalSearchResponse called with:', result);
+            console.log('🎯 [FRONTEND DEBUG] globalSearchResultsSection element:', globalSearchResultsSection);
+            console.log('🎯 [FRONTEND DEBUG] globalSearchResultsContainer element:', globalSearchResultsContainer);
+            
             if (result.success) {
+              console.log('✅ [FRONTEND DEBUG] Success - showing results');
               showNotification(result.message, 'success');
               // Show the search results section
               globalSearchResultsSection.style.display = 'block';
+              console.log('🎯 [FRONTEND DEBUG] Made search results section visible');
               // Render the results
               renderNews(result.data, globalSearchResultsContainer);
+              console.log('🎯 [FRONTEND DEBUG] Called renderNews with data length:', result.data.length);
               addRecentActivity(`Global search completed: <strong>${result.data.length} articles found</strong>`, 'success');
             } else {
+              console.log('❌ [FRONTEND DEBUG] Error - showing error message');
               showNotification(result.message || 'Search failed', 'error');
               globalSearchResultsContainer.innerHTML = `<p class="text-red-400 text-center">${result.message}</p>`;
               globalSearchResultsSection.style.display = 'block';
@@ -786,15 +801,21 @@
 
           function handleGlobalSearch() {
             const query = globalSearchInput.value.trim();
+            console.log('🚀 [FRONTEND DEBUG] handleGlobalSearch called with query:', query);
+            
             if (!query) return showNotification('Please enter a search term.', 'error');
             
             // Clear previous results
             globalSearchResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="text-slate-400 mt-2">Searching...</p></div>';
             globalSearchResultsSection.style.display = 'block';
+            console.log('🚀 [FRONTEND DEBUG] Set loading state and made section visible');
             
+            const requestData = { type: 'news', query };
+            console.log('🚀 [FRONTEND DEBUG] Emitting scrape_request with:', requestData);
             showNotification(`Searching for "${query}"...`);
-            socket.emit('scrape_request', { type: 'news', query });
+            socket.emit('scrape_request', requestData);
             addRecentActivity(`Global search started for: <strong>${query}</strong>`);
+            console.log('🚀 [FRONTEND DEBUG] Request sent successfully');
           }
 
           function handleNewsScrape() {
@@ -869,13 +890,26 @@
           }
 
           function renderNews(data, container = newsResultsContainer) {
-            if (!data || data.length === 0) return container.innerHTML = '<p class="text-center text-slate-500">No articles found for your query.</p>';
-            container.innerHTML = data.map(article => `
-              <div class="bg-slate-800 p-4 rounded-lg">
-                <h4 class="text-lg font-bold text-white">${article.title}</h4>
-                <p class="text-slate-400">${article.content}</p>
-                <span class="text-sm text-blue-400">${article.source}</span>
-              </div>`).join('');
+            console.log('📰 [FRONTEND DEBUG] renderNews called with data:', data);
+            console.log('📰 [FRONTEND DEBUG] renderNews container:', container);
+            console.log('📰 [FRONTEND DEBUG] Data length:', data ? data.length : 'null/undefined');
+            
+            if (!data || data.length === 0) {
+              console.log('❌ [FRONTEND DEBUG] No data to render');
+              return container.innerHTML = '<p class="text-center text-slate-500">No articles found for your query.</p>';
+            }
+            
+            console.log('✅ [FRONTEND DEBUG] Rendering', data.length, 'articles');
+            container.innerHTML = data.map(article => {
+              console.log('📰 [FRONTEND DEBUG] Processing article:', article.title);
+              return `
+                <div class="bg-slate-800 p-4 rounded-lg">
+                  <h4 class="text-lg font-bold text-white">${article.title}</h4>
+                  <p class="text-slate-400">${article.content}</p>
+                  <span class="text-sm text-blue-400">${article.source}</span>
+                </div>`;
+            }).join('');
+            console.log('✅ [FRONTEND DEBUG] Finished rendering articles to container');
           }
 
           function renderEcommerce(data, container) {
