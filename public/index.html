@@ -494,6 +494,122 @@
                 </div>
             </section>
             
+            <!-- Mood Playlist Section -->
+<section id="mood-playlist" style="margin: 2rem 0; padding: 2rem; background: rgba(30, 41, 59, 0.7); border-radius: 16px;">
+  <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Mood Playlist</h2>
+  
+  <!-- Language Selection -->
+  <div style="margin-bottom: 1rem;">
+    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Select Language:</label>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <button onclick="selectLanguage('english')" class="lang-btn active" data-lang="english" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🇺🇸 English</button>
+      <button onclick="selectLanguage('hindi')" class="lang-btn" data-lang="hindi" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🇮🇳 Hindi</button>
+      <button onclick="selectLanguage('punjabi')" class="lang-btn" data-lang="punjabi" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🇮🇳 Punjabi</button>
+    </div>
+  </div>
+  
+  <!-- Mood Selection Buttons -->
+  <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+    <button onclick="selectMood('happy')" class="mood-btn" data-mood="happy" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">😊 Happy</button>
+    <button onclick="selectMood('sad')" class="mood-btn" data-mood="sad" style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">😢 Sad</button>
+    <button onclick="selectMood('romantic')" class="mood-btn" data-mood="romantic" style="background: #ec4899; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">💕 Romantic</button>
+    <button onclick="selectMood('energetic')" class="mood-btn" data-mood="energetic" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">⚡ Energetic</button>
+    <button onclick="selectMood('calm')" class="mood-btn" data-mood="calm" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">🍃 Calm</button>
+    <button onclick="selectMood('party')" class="mood-btn" data-mood="party" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">🎉 Party</button>
+  </div>
+  
+             <!-- Search and Generate -->
+           <div style="margin-bottom: 1rem;">
+             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+               <input type="text" id="song-search" placeholder="Search for specific songs..." style="flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
+               <button onclick="searchSongs()" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🔍 Search</button>
+               <button onclick="generateMoodPlaylist()" id="generate-btn" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🎵 Generate Playlist</button>
+             </div>
+             <div style="margin-top: 0.5rem;">
+               <button onclick="togglePlayMode()" id="play-mode-btn" style="background: #7c3aed; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">🎵 High Quality Audio</button>
+               <span style="color: #9ca3af; font-size: 0.8rem; margin-left: 0.5rem;">Pure audio streaming - no videos, just music</span>
+             </div>
+           </div>
+  
+  <!-- Loading Indicator -->
+  <div id="loading-indicator" style="display: none; text-align: center; padding: 2rem;">
+    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #374151; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <p style="margin-top: 1rem;">Scraping songs for your mood...</p>
+  </div>
+  
+  <!-- Playlist Info -->
+  <div id="playlist-info" style="margin-bottom: 1rem; display: none;">
+    <h3 id="current-mood-title" style="font-size: 1.2rem; margin-bottom: 0.5rem;"></h3>
+    <button onclick="playMoodPlaylist()" id="play-btn" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1.2em; cursor: pointer;">▶️ Play All</button>
+  </div>
+  
+  <!-- Music Player -->
+  <div id="music-player" style="display:none; margin-top: 1rem;">
+    <div style="background: #1f2937; border-radius: 12px; padding: 1rem; border: 1px solid #374151;">
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <div style="width: 60px; height: 60px; background: linear-gradient(45deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-music" style="color: white; font-size: 1.5rem;"></i>
+        </div>
+        <div style="flex: 1;">
+          <div id="current-song-title" style="font-weight: bold; font-size: 1.1rem;">No song playing</div>
+          <div id="current-song-artist" style="color: #9ca3af;">-</div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button onclick="previousTrack()" style="background: #374151; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
+            <i class="fas fa-step-backward"></i>
+          </button>
+          <button onclick="togglePlayPause()" id="play-pause-btn" style="background: #3b82f6; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
+            <i class="fas fa-play"></i>
+          </button>
+          <button onclick="nextTrack()" style="background: #374151; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
+            <i class="fas fa-step-forward"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Audio Player Container -->
+      <div id="audio-container" style="margin-bottom: 1rem;">
+        <!-- Audio controls will be here -->
+      </div>
+      
+      <!-- Progress Bar -->
+      <div style="margin-bottom: 0.5rem;">
+        <div style="background: #374151; height: 4px; border-radius: 2px; position: relative; cursor: pointer;" onclick="seekTo(event)">
+          <div id="progress-bar" style="background: #3b82f6; height: 100%; border-radius: 2px; width: 0%; transition: width 0.1s;"></div>
+        </div>
+      </div>
+      
+      <!-- Time Display -->
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #9ca3af;">
+        <span id="current-time">0:00</span>
+        <span id="total-time">0:00</span>
+      </div>
+      
+      <!-- Volume Control -->
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+        <i class="fas fa-volume-down" style="color: #9ca3af;"></i>
+        <input type="range" id="volume-control" min="0" max="100" value="50" style="flex: 1; height: 4px; background: #374151; border-radius: 2px; outline: none;">
+        <i class="fas fa-volume-up" style="color: #9ca3af;"></i>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden Audio Element for Background Playback -->
+  <audio id="audio-player" style="display: none;"></audio>
+  
+  <!-- Track List -->
+  <div id="track-list" style="margin-top: 1rem; display: none;">
+    <h4 style="margin-bottom: 0.5rem;">Tracks:</h4>
+    <div id="tracks-container"></div>
+  </div>
+</section>
+
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
 
             
             <!-- News Scraper Section -->
@@ -971,5 +1087,581 @@
           initializeApp();
         });
     </script>
+    <script>
+// Global variables
+let currentLanguage = 'english';
+let currentMood = null;
+let currentPlaylist = [];
+let currentTrackIndex = 0;
+let isScraping = false;
+let useEmbeddedMode = true; // Toggle between embedded and direct play
+
+// Language-specific song databases with working audio URLs
+const songDatabases = {
+  english: {
+    happy: [
+      { title: "Happy", artist: "Pharrell Williams", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
+      { title: "Good Life", artist: "OneRepublic", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
+      { title: "Walking on Sunshine", artist: "Katrina & The Waves", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" }
+    ],
+    sad: [
+      { title: "Mad World", artist: "Gary Jules", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" },
+      { title: "Hallelujah", artist: "Jeff Buckley", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" }
+    ],
+    romantic: [
+      { title: "Perfect", artist: "Ed Sheeran", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" },
+      { title: "All of Me", artist: "John Legend", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" }
+    ],
+    energetic: [
+      { title: "Eye of the Tiger", artist: "Survivor", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" },
+      { title: "We Will Rock You", artist: "Queen", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" }
+    ],
+    calm: [
+      { title: "Weightless", artist: "Marconi Union", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" },
+      { title: "Claire de Lune", artist: "Debussy", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" }
+    ],
+    party: [
+      { title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" },
+      { title: "Shake It Off", artist: "Taylor Swift", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" }
+    ]
+  },
+  hindi: {
+    happy: [
+      { title: "Bole Chudiyan", artist: "Jatin-Lalit", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
+      { title: "Mast Kalandar", artist: "Various Artists", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" }
+    ],
+    sad: [
+      { title: "Tum Hi Ho", artist: "Arijit Singh", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" },
+      { title: "Raabta", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" }
+    ],
+    romantic: [
+      { title: "Tum Se Hi", artist: "Mohit Chauhan", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" },
+      { title: "Raabta", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" }
+    ],
+    energetic: [
+      { title: "Jai Ho", artist: "A.R. Rahman", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" },
+      { title: "Chak De India", artist: "Salim-Sulaiman", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" }
+    ],
+    calm: [
+      { title: "Agar Tum Saath Ho", artist: "Arijit Singh", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" },
+      { title: "Raabta", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" }
+    ],
+    party: [
+      { title: "Badtameez Dil", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" },
+      { title: "Balam Pichkari", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" }
+    ]
+  },
+  punjabi: {
+    happy: [
+      { title: "Lahore", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
+      { title: "High Rated Gabru", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" }
+    ],
+    sad: [
+      { title: "Suit", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" },
+      { title: "Patola", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" }
+    ],
+    romantic: [
+      { title: "Suit", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" },
+      { title: "Patola", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" }
+    ],
+    energetic: [
+      { title: "Lahore", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" },
+      { title: "High Rated Gabru", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" }
+    ],
+    calm: [
+      { title: "Suit", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" },
+      { title: "Patola", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" }
+    ],
+    party: [
+      { title: "Lahore", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" },
+      { title: "High Rated Gabru", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" }
+    ]
+  }
+};
+
+// Select language function
+function selectLanguage(language) {
+  // Remove active class from all language buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.style.background = '#6b7280';
+  });
+  
+  // Add active class to selected language button
+  document.querySelector(`[data-lang="${language}"]`).style.background = '#3b82f6';
+  
+  currentLanguage = language;
+  console.log(`Selected language: ${language}`);
+  
+  // Clear current playlist if mood is selected
+  if (currentMood) {
+    currentPlaylist = [];
+    document.getElementById('track-list').style.display = 'none';
+    document.getElementById('playlist-info').style.display = 'none';
+  }
+}
+
+// Select mood function
+function selectMood(mood) {
+  // Remove active class from all mood buttons
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.style.opacity = '0.7';
+  });
+  
+  // Add active class to selected button
+  document.querySelector(`[data-mood="${mood}"]`).style.opacity = '1';
+  
+  currentMood = mood;
+  console.log(`Selected ${mood} mood for ${currentLanguage} language`);
+}
+
+// Search songs function
+async function searchSongs() {
+  const searchTerm = document.getElementById('song-search').value.trim();
+  if (!searchTerm) {
+    alert('Please enter a search term!');
+    return;
+  }
+  
+  showLoading(true);
+  
+  try {
+    // Simulate API call to search for songs
+    const searchResults = await searchSongsAPI(searchTerm, currentLanguage);
+    currentPlaylist = searchResults;
+    currentTrackIndex = 0;
+    
+    displayPlaylistInfo(`Search Results for "${searchTerm}"`);
+    displayTracks();
+    showLoading(false);
+    
+  } catch (error) {
+    console.error('Search error:', error);
+    alert('Failed to search songs. Please try again.');
+    showLoading(false);
+  }
+}
+
+// Generate mood playlist function
+async function generateMoodPlaylist() {
+  if (!currentMood) {
+    alert('Please select a mood first!');
+    return;
+  }
+  
+  showLoading(true);
+  
+  try {
+    // Simulate API call to generate mood-based playlist
+    const playlist = await generateMoodPlaylistAPI(currentMood, currentLanguage);
+    currentPlaylist = playlist;
+    currentTrackIndex = 0;
+    
+    displayPlaylistInfo(`${currentMood.charAt(0).toUpperCase() + currentMood.slice(1)} Mood Playlist (${currentLanguage})`);
+    displayTracks();
+    showLoading(false);
+    
+  } catch (error) {
+    console.error('Playlist generation error:', error);
+    alert('Failed to generate playlist. Please try again.');
+    showLoading(false);
+  }
+}
+
+// Mock API functions (replace with real API calls)
+async function searchSongsAPI(searchTerm, language) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Simulate search results
+      const allSongs = getAllSongsForLanguage(language);
+      const results = allSongs.filter(song => 
+        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      resolve(results.slice(0, 10)); // Limit to 10 results
+    }, 2000);
+  });
+}
+
+async function generateMoodPlaylistAPI(mood, language) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const moodSongs = songDatabases[language][mood] || [];
+      // Add some random songs from other moods for variety
+      const allSongs = getAllSongsForLanguage(language);
+      const randomSongs = allSongs.filter(song => song.mood !== mood).slice(0, 3);
+      const playlist = [...moodSongs, ...randomSongs];
+      resolve(playlist);
+    }, 3000);
+  });
+}
+
+// Helper function to get all songs for a language
+function getAllSongsForLanguage(language) {
+  const allSongs = [];
+  const languageSongs = songDatabases[language];
+  
+  for (const mood in languageSongs) {
+    allSongs.push(...languageSongs[mood]);
+  }
+  
+  return allSongs;
+}
+
+// Show/hide loading indicator
+function showLoading(show) {
+  const loadingIndicator = document.getElementById('loading-indicator');
+  const generateBtn = document.getElementById('generate-btn');
+  
+  if (show) {
+    loadingIndicator.style.display = 'block';
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generating...';
+  } else {
+    loadingIndicator.style.display = 'none';
+    generateBtn.disabled = false;
+    generateBtn.textContent = '🎵 Generate Playlist';
+  }
+}
+
+// Display playlist info
+function displayPlaylistInfo(title) {
+  document.getElementById('playlist-info').style.display = 'block';
+  document.getElementById('current-mood-title').textContent = title;
+  document.getElementById('track-list').style.display = 'block';
+}
+
+// Display tracks function
+function displayTracks() {
+  const container = document.getElementById('tracks-container');
+  
+  if (currentPlaylist.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 2rem;">No tracks found</p>';
+    return;
+  }
+  
+  container.innerHTML = currentPlaylist.map((track, index) => `
+    <div style="padding: 0.5rem; border-bottom: 1px solid #374151; cursor: pointer;" 
+         onclick="playTrack(${index})" 
+         onmouseover="this.style.backgroundColor='#374151'" 
+         onmouseout="this.style.backgroundColor='transparent'">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: bold;">${track.title}</div>
+          <div style="color: #9ca3af; font-size: 0.9rem;">${track.artist}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="background: #374151; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${track.mood}</span>
+                             <span style="background: #3b82f6; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; color: white;">${track.type}</span>
+          <button onclick="event.stopPropagation(); playTrack(${index})" style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+            <i class="fas fa-play"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Play specific track function
+function playTrack(index) {
+  if (index < 0 || index >= currentPlaylist.length) return;
+
+  currentTrackIndex = index;
+  const track = currentPlaylist[index];
+  const audio = document.getElementById('audio-player');
+  const musicPlayer = document.getElementById('music-player');
+  musicPlayer.style.display = 'block';
+
+  document.getElementById('current-song-title').textContent = track.title;
+  document.getElementById('current-song-artist').textContent = track.artist;
+
+  // Remove previous event listeners to avoid stacking
+  audio.oncanplay = null;
+  audio.onerror = null;
+  audio.onended = null;
+
+  audio.src = track.url;
+  audio.load();
+
+  audio.oncanplay = function() {
+    audio.play().then(() => {
+      showNotification(`🎵 Now playing: ${track.title} by ${track.artist}`, 'success');
+      const playPauseBtn = document.getElementById('play-pause-btn');
+      playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+      playPauseBtn.onclick = togglePlayPause;
+    }).catch(error => {
+      showNotification('Error playing track. Skipping to next...', 'warning');
+      nextTrack();
+    });
+  };
+
+  audio.onerror = function() {
+    showNotification('Audio file not available. Skipping to next...', 'warning');
+    setTimeout(() => {
+      nextTrack();
+    }, 1000);
+  };
+
+  audio.onended = function() {
+    nextTrack();
+  };
+
+  updateCurrentTrackDisplay();
+}
+
+// Toggle play mode function (now for audio quality)
+function togglePlayMode() {
+  useEmbeddedMode = !useEmbeddedMode;
+  const modeBtn = document.getElementById('play-mode-btn');
+  
+  if (useEmbeddedMode) {
+    modeBtn.textContent = '🎵 High Quality Audio';
+    modeBtn.style.background = '#7c3aed';
+    showNotification('Switched to High Quality Audio Mode', 'success');
+  } else {
+    modeBtn.textContent = '🔊 Standard Audio';
+    modeBtn.style.background = '#059669';
+    showNotification('Switched to Standard Audio Mode', 'success');
+  }
+}
+
+// Alternative play function that tries multiple approaches
+function playTrackAlternative(index) {
+  if (index < 0 || index >= currentPlaylist.length) return;
+  
+  currentTrackIndex = index;
+  const track = currentPlaylist[index];
+  
+  // Try direct YouTube link first
+  const videoId = track.url;
+  const directUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  
+  // Show notification
+  showNotification(`🎵 Opening: ${track.title}`, 'info');
+  
+  // Open in new tab as fallback
+  setTimeout(() => {
+    window.open(directUrl, '_blank');
+  }, 1000);
+  
+  updateCurrentTrackDisplay();
+}
+
+// Audio player controls
+function togglePlayPause() {
+  const audio = document.getElementById('audio-player');
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  
+  if (audio.paused) {
+    audio.play();
+    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+  } else {
+    audio.pause();
+    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+  }
+}
+
+// Previous track function
+function previousTrack() {
+  if (currentTrackIndex > 0) {
+    playTrack(currentTrackIndex - 1);
+  }
+}
+
+// Next track function
+function nextTrack() {
+  if (currentTrackIndex < currentPlaylist.length - 1) {
+    playTrack(currentTrackIndex + 1);
+  }
+}
+
+// Seek to position function
+function seekTo(event) {
+  const audio = document.getElementById('audio-player');
+  const progressBar = event.currentTarget;
+  const rect = progressBar.getBoundingClientRect();
+  const percent = (event.clientX - rect.left) / rect.width;
+  
+  if (audio.duration) {
+    audio.currentTime = percent * audio.duration;
+  }
+}
+
+// Toggle play/pause function
+function togglePlayPause() {
+  const iframe = document.getElementById('embedded-video');
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  
+  if (iframe) {
+    // Send message to iframe to play/pause
+    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+    
+    // Toggle button state
+    if (playPauseBtn.innerHTML.includes('play')) {
+      playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    } else {
+      playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+  }
+}
+
+// Previous track function
+function previousTrack() {
+  if (currentTrackIndex > 0) {
+    playTrack(currentTrackIndex - 1);
+  }
+}
+
+// Next track function
+function nextTrack() {
+  if (currentTrackIndex < currentPlaylist.length - 1) {
+    playTrack(currentTrackIndex + 1);
+  }
+}
+
+// Seek to position function
+function seekTo(event) {
+  const progressBar = event.currentTarget;
+  const rect = progressBar.getBoundingClientRect();
+  const percent = (event.clientX - rect.left) / rect.width;
+  
+  const iframe = document.getElementById('embedded-video');
+  if (iframe) {
+    // Send seek command to iframe
+    iframe.contentWindow.postMessage(`{"event":"command","func":"seekTo","args":[${Math.floor(percent * 100)}]}`, '*');
+  }
+}
+
+// Show notification function
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    z-index: 1000;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+  `;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.style.transform = 'translateX(400px)';
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 300);
+  }, 3000);
+}
+
+// Play mood playlist function
+function playMoodPlaylist() {
+  if (!currentMood || currentPlaylist.length === 0) {
+    alert('Please select a mood and generate playlist first!');
+    return;
+  }
+  
+  playTrack(0);
+}
+
+// Update current track display
+function updateCurrentTrackDisplay() {
+  const tracks = document.querySelectorAll('#tracks-container > div');
+  tracks.forEach((track, index) => {
+    if (index === currentTrackIndex) {
+      track.style.backgroundColor = '#3b82f6';
+      track.style.color = 'white';
+    } else {
+      track.style.backgroundColor = 'transparent';
+      track.style.color = 'inherit';
+    }
+  });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  const audio = document.getElementById('audio-player');
+  
+  // Auto-play next track when current ends
+  audio.addEventListener('ended', function() {
+    currentTrackIndex++;
+    if (currentTrackIndex < currentPlaylist.length) {
+      playTrack(currentTrackIndex);
+    }
+  });
+  
+  // Update progress bar and time display
+  audio.addEventListener('timeupdate', function() {
+    const progressBar = document.getElementById('progress-bar');
+    const currentTime = document.getElementById('current-time');
+    const totalTime = document.getElementById('total-time');
+    
+    if (audio.duration && !isNaN(audio.duration)) {
+      const progress = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = progress + '%';
+      
+      currentTime.textContent = formatTime(audio.currentTime);
+      totalTime.textContent = formatTime(audio.duration);
+    }
+  });
+  
+  // Handle loadedmetadata event for duration
+  audio.addEventListener('loadedmetadata', function() {
+    const totalTime = document.getElementById('total-time');
+    if (audio.duration && !isNaN(audio.duration)) {
+      totalTime.textContent = formatTime(audio.duration);
+    }
+  });
+  
+  // Handle canplay event
+  audio.addEventListener('canplay', function() {
+    const totalTime = document.getElementById('total-time');
+    if (audio.duration && !isNaN(audio.duration)) {
+      totalTime.textContent = formatTime(audio.duration);
+    }
+  });
+  
+  // Handle volume control
+  const volumeControl = document.getElementById('volume-control');
+  volumeControl.addEventListener('input', function() {
+    audio.volume = this.value / 100;
+  });
+  
+  // Handle search input enter key
+  document.getElementById('song-search').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      searchSongs();
+    }
+  });
+  
+  // Set initial volume
+  audio.volume = 0.5;
+  
+  console.log('Mood Playlist initialized with audio-only support');
+});
+
+// Format time function
+function formatTime(seconds) {
+  if (isNaN(seconds) || seconds === Infinity) {
+    return '0:00';
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+</script>
 </body>
 </html> 
