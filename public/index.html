@@ -3,926 +3,1265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Velmora - Advanced Web Scraper Platform</title>
-    <meta name="description" content="Professional web scraping platform with real-time data aggregation, news monitoring, stock tracking, and custom scrapers">
-    <meta name="keywords" content="web scraping, news aggregation, stock tracking, data monitoring, real-time">
-    
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Socket.IO for real-time updates -->
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
+    <title>Velmora - Advanced Web Scraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* New Velmora Color Scheme */
         :root {
-            --primary-color: #3B82F6;
-            --secondary-color: #8B5CF6;
-            --accent-color: #F59E0B;
-            --success-color: #10B981;
-            --error-color: #EF4444;
-            --warning-color: #F59E0B;
-            --dark-bg: #0F172A;
-            --card-bg: #1E293B;
-            --text-primary: #F1F5F9;
-            --text-secondary: #94A3B8;
-            --border-color: #334155;
+            --velmora-primary: #FF6B6B;
+            --velmora-secondary: #FFD93D;
+            --velmora-accent: #6BCB77;
+            --velmora-background: #FFFBE6;
+            --velmora-text: #222831;
+            --velmora-nav-bg: #6BCB77;
+            --velmora-glow: rgba(255, 107, 107, 0.4);
+            --radius: 0.75rem;
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+
+        .dark {
+            --velmora-background: #222831;
+            --velmora-text: #FFFBE6;
+            --velmora-nav-bg: #FFD93D;
         }
-        
+
         body {
+            background-color: var(--velmora-background);
+            color: var(--velmora-text);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--dark-bg);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
+            transition: all 0.3s ease;
         }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        /* Navigation Styles */
+        .velmora-nav {
+            background-color: var(--velmora-nav-bg);
+            border-bottom: 2px solid var(--velmora-secondary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
-        
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+        .velmora-brand {
+            background: linear-gradient(to right, var(--velmora-primary), var(--velmora-secondary), var(--velmora-accent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: gradient-shift 3s ease infinite;
+            background-size: 200% 200%;
         }
-        
-        .loading-shimmer {
-            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+
+        /* Navigation Buttons */
+        .nav-btn {
+            position: relative;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            border: 2px solid transparent;
+            background: var(--velmora-background);
+            color: var(--velmora-text);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            overflow: hidden;
         }
-        
-        .pulse-dot {
-            animation: pulse-dot 2s infinite;
+
+        .nav-btn:hover {
+            background: rgba(255, 107, 107, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
         }
-        
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .scroll-smooth {
-            scroll-behavior: smooth;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+
+        .nav-btn.active {
+            background: linear-gradient(to right, var(--velmora-primary), var(--velmora-secondary), var(--velmora-accent));
             color: white;
-            border: none;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+            animation: rainbow-shift 4s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes rainbow-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Dropdown Styles */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--velmora-nav-bg);
+            border: 2px solid var(--velmora-secondary);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 200px;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--velmora-secondary)/30;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Card Styles */
+        .velmora-card {
+            background: var(--velmora-background);
+            border: 2px solid var(--velmora-secondary);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .velmora-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.15);
+        }
+
+        .velmora-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, var(--velmora-primary), var(--velmora-secondary), var(--velmora-accent));
+            opacity: 0.05;
+            z-index: -1;
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background: linear-gradient(to right, var(--velmora-primary), var(--velmora-secondary));
+            color: white;
             padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 500;
+            border-radius: var(--radius);
+            border: none;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
         }
-        
+
         .btn-secondary {
-            background: transparent;
-            color: var(--text-primary);
-            border: 2px solid var(--border-color);
-            padding: 10px 22px;
-            border-radius: 8px;
-            font-weight: 500;
+            background: var(--velmora-accent);
+            color: var(--velmora-text);
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            border: 2px solid var(--velmora-secondary);
             cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
         }
-        
+
         .btn-secondary:hover {
-            border-color: var(--primary-color);
-            background: rgba(59, 130, 246, 0.1);
+            background: var(--velmora-secondary);
+            transform: translateY(-1px);
         }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .status-online { background: var(--success-color); }
-        .status-offline { background: var(--error-color); }
-        .status-warning { background: var(--warning-color); }
-        
-        .metric-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 24px;
-            border: 1px solid var(--border-color);
+
+        /* Input Styles */
+        .velmora-input {
+            background: var(--velmora-background);
+            border: 2px solid var(--velmora-secondary);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            color: var(--velmora-text);
             transition: all 0.3s ease;
+            width: 100%;
         }
-        
-        .metric-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+
+        .velmora-input:focus {
+            outline: none;
+            border-color: var(--velmora-primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
         }
-        
-        .article-card {
-            background: var(--card-bg);
-            border-radius: 12px;
+
+        /* Gradient Utilities */
+        .gradient-text {
+            background: linear-gradient(to right, var(--velmora-primary), var(--velmora-secondary), var(--velmora-accent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: gradient-shift 3s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        .rainbow-gradient {
+            background: linear-gradient(to right, var(--velmora-primary), var(--velmora-secondary), var(--velmora-accent));
+            background-size: 200% 200%;
+            animation: rainbow-shift 4s ease infinite;
+        }
+
+        .marigold-gradient {
+            background: linear-gradient(135deg, var(--velmora-secondary), var(--velmora-accent));
+        }
+
+        .green-gradient {
+            background: linear-gradient(135deg, var(--velmora-accent), var(--velmora-primary));
+        }
+
+        /* Stats and Animations */
+        .stat-counter {
+            animation: countUp 2s ease-out;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        @keyframes countUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .bounce-in {
+            animation: bounceIn 0.8s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            70% { transform: scale(0.9); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading States */
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--velmora-secondary);
+            border-top: 4px solid var(--velmora-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { color: transparent; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent; }
+            40% { color: var(--velmora-primary); text-shadow: .25em 0 0 transparent, .5em 0 0 transparent; }
+            60% { text-shadow: .25em 0 0 var(--velmora-primary), .5em 0 0 transparent; }
+            80%, 100% { text-shadow: .25em 0 0 var(--velmora-primary), .5em 0 0 var(--velmora-primary); }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            .velmora-brand h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-buttons {
+                display: none;
+            }
+            
+            .mobile-nav {
+                display: block;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-nav {
+                display: none;
+            }
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            background: rgba(107, 203, 119, 0.1);
+            border-radius: var(--radius);
             padding: 20px;
-            border: 1px solid var(--border-color);
             transition: all 0.3s ease;
             cursor: pointer;
+            border: 2px solid transparent;
         }
-        
-        .article-card:hover {
+
+        .feature-card:hover {
+            background: rgba(255, 107, 107, 0.1);
+            border-color: var(--velmora-primary);
             transform: translateY(-2px);
-            border-color: var(--primary-color);
         }
-        
-        .modal {
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        /* Hidden sections initially */
+        .page-section {
             display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
         }
-        
-        .modal-content {
-            background: var(--card-bg);
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
+
+        .page-section.active {
+            display: block;
+            animation: slideInUp 0.6s ease-out;
         }
-        
-        .toast {
+
+        /* Notification styles */
+        .notification {
             position: fixed;
             top: 20px;
             right: 20px;
             padding: 16px 20px;
-            border-radius: 8px;
+            border-radius: var(--radius);
             color: white;
-            font-weight: 500;
+            font-weight: 600;
             z-index: 1001;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            animation: slideInUp 0.3s ease-out;
         }
-        
-        .toast.show {
-            transform: translateX(0);
+
+        .notification.success {
+            background: var(--velmora-accent);
         }
-        
-        .toast-success { background: var(--success-color); }
-        .toast-error { background: var(--error-color); }
-        .toast-warning { background: var(--warning-color); }
-        
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            width: 280px;
-            background: var(--card-bg);
-            border-right: 1px solid var(--border-color);
-            transition: transform 0.3s ease;
-            z-index: 100;
+
+        .notification.error {
+            background: var(--velmora-primary);
         }
-        
-        .sidebar-hidden {
-            transform: translateX(-100%);
-        }
-        
-        .main-content {
-            margin-left: 280px;
-            transition: margin-left 0.3s ease;
-        }
-        
-        .main-content.sidebar-hidden {
-            margin-left: 0;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-        }
-        
-        .dark-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .dark-scrollbar::-webkit-scrollbar-track {
-            background: var(--card-bg);
-        }
-        
-        .dark-scrollbar::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
-        }
-        
-        .dark-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-color);
-        }
-        
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-        
-        .nav-item:hover {
-            background: var(--hover-bg);
-            color: var(--text-primary);
-        }
-        
-        .nav-item.active {
-            background: var(--primary-color);
-            color: white;
-        }
-        
-        .nav-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 16px;
+
+        .notification.info {
+            background: var(--velmora-secondary);
+            color: var(--velmora-text);
         }
     </style>
 </head>
-<body class="dark-scrollbar">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="p-6 border-b border-gray-700">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-rocket text-white"></i>
+<body>
+    <!-- Navigation -->
+    <nav class="velmora-nav w-full p-4 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Brand -->
+            <div class="velmora-brand">
+                <h1 class="text-4xl font-bold px-6 py-2">Velmora</h1>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <div class="nav-buttons flex items-center gap-4">
+                <div class="flex flex-wrap gap-2">
+                    <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+                    <button class="nav-btn" data-section="news-scraper">News Scraper</button>
+                    <button class="nav-btn" data-section="stock-prices">Stock Prices</button>
+                    <button class="nav-btn" data-section="crypto-insights">Crypto Insights</button>
+                    <button class="nav-btn" data-section="ecommerce">E-Commerce</button>
+                    <button class="nav-btn" data-section="mood-playlist">Mood Playlist</button>
+                    <button class="nav-btn" data-section="share">Share</button>
                 </div>
-                <div>
-                    <h1 class="text-xl font-bold text-white">Velmora</h1>
-                    <p class="text-sm text-gray-400">Advanced Scraper</p>
+                
+                <!-- Dropdown Menu -->
+                <div class="dropdown">
+                    <button class="nav-btn dropdown-toggle">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item" data-section="profile">
+                            <i class="fas fa-user mr-2"></i> Profile
+                        </div>
+                        <div class="dropdown-item" data-section="about">
+                            <i class="fas fa-info-circle mr-2"></i> About Us
+                        </div>
+                        <div class="dropdown-item" data-section="reviews">
+                            <i class="fas fa-star mr-2"></i> Reviews
+                        </div>
+                        <div class="dropdown-item" data-section="settings">
+                            <i class="fas fa-cog mr-2"></i> Settings
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <nav class="p-4">
-            <div class="space-y-2">
-                <a href="#" class="nav-item active" data-section="dashboard">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="nav-item" data-section="news-scraper">
-                    <i class="fas fa-newspaper"></i>
-                    <span>News Scraper</span>
-                </a>
-                <a href="#" class="nav-item" data-section="stock-tracker">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Stock Tracker</span>
-                </a>
-                <a href="#" class="nav-item" data-section="crypto-monitor">
-                    <i class="fab fa-bitcoin"></i>
-                    <span>Crypto Monitor</span>
-                </a>
-                <a href="#" class="nav-item" data-section="ecommerce">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>E-commerce</span>
-                </a>
-                <a href="#" class="nav-item" data-section="social">
-                    <i class="fas fa-share-alt"></i>
-                    <span>Social Media</span>
-                </a>
-                <a href="#" class="nav-item" data-section="custom-scraper">
-                    <i class="fas fa-cog"></i>
-                    <span>Custom Scraper</span>
-                </a>
-                <a href="#" class="nav-item" data-section="history">
-                    <i class="fas fa-history"></i>
-                    <span>History</span>
-                </a>
-                <a href="#" class="nav-item" data-section="settings">
-                    <i class="fas fa-settings"></i>
-                    <span>Settings</span>
-                </a>
-            </div>
-        </nav>
-        
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                    <i class="fas fa-user text-sm"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium" id="user-name">Guest User</p>
-                    <p class="text-xs text-gray-400" id="user-status">Free Plan</p>
-                </div>
-                <button class="btn-secondary" id="auth-btn" onclick="toggleAuth()">
-                    <i class="fas fa-sign-in-alt"></i>
+
+            <!-- Mobile Navigation -->
+            <div class="mobile-nav">
+                <button class="nav-btn mobile-menu-toggle">
+                    <i class="fas fa-bars text-lg"></i>
                 </button>
             </div>
         </div>
-    </div>
-    
+    </nav>
+
     <!-- Main Content -->
-    <div class="main-content" id="main-content">
-        <!-- Header -->
-        <header class="bg-slate-800 border-b border-gray-700 p-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <button class="btn-secondary lg:hidden" onclick="toggleSidebar()">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <h2 class="text-xl font-semibold" id="page-title">Dashboard</h2>
-                    <div class="flex items-center gap-2">
-                        <span class="status-indicator pulse-dot" id="connection-status"></span>
-                        <span class="text-sm text-gray-400" id="connection-text">Connected</span>
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="page-section active">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Dashboard</h1>
+                    <p class="text-lg">Welcome to your Velmora dashboard. Monitor your investments, track news, and analyze market trends.</p>
+                </div>
+
+                <!-- Global Search -->
+                <div class="velmora-card">
+                    <h2 class="text-xl font-semibold mb-4">Quick Search</h2>
+                    <div class="flex gap-4">
+                        <input type="text" id="global-search-input" class="velmora-input flex-1" 
+                               placeholder="Search news, stocks, crypto... (e.g., 'Apple', 'Bitcoin', 'tech news')">
+                        <button id="start-scraping-btn" class="btn-primary">
+                            <i class="fas fa-search mr-2"></i>Start Scraping
+                        </button>
                     </div>
                 </div>
-                
-                <div class="flex items-center gap-4">
-                    <div class="relative">
-                        <input type="text" 
-                               placeholder="Search..." 
-                               class="bg-slate-700 text-white px-4 py-2 rounded-lg pl-10 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               id="global-search-input">
-                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="velmora-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-70">Daily Change</p>
+                                <p class="stat-counter text-green-600">+2.45%</p>
+                                <p class="text-sm text-yellow-600 mt-1">Portfolio</p>
+                            </div>
+                            <div class="w-12 h-12 marigold-gradient rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">📈</span>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn-primary" id="start-scraping-btn">
-                        <i class="fas fa-play"></i>
-                        <span>Start Scraping</span>
-                    </button>
+
+                    <div class="velmora-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-70">Total Investment</p>
+                                <p class="stat-counter">$45,672.83</p>
+                                <p class="text-sm text-yellow-600 mt-1">USD</p>
+                            </div>
+                            <div class="w-12 h-12 rainbow-gradient rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">💰</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="velmora-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-70">Latest Updates</p>
+                                <p class="stat-counter">156</p>
+                                <p class="text-sm text-yellow-600 mt-1">Today</p>
+                            </div>
+                            <div class="w-12 h-12 green-gradient rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">📰</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Global Search Results -->
+                <div id="global-search-results-section" class="velmora-card" style="display: none;">
+                    <h3 class="text-xl font-semibold mb-4">Search Results</h3>
+                    <div id="global-search-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="velmora-card">
+                    <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
+                    <div id="recent-activity-list" class="space-y-3">
+                        <div class="flex items-start space-x-3 p-3 bg-opacity-20 bg-green-500 rounded-lg">
+                            <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm">System initialized successfully</p>
+                                <p class="text-xs opacity-60">Just now</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What you wanna do today */
+                <div class="velmora-card">
+                    <h3 class="text-2xl font-semibold mb-6">What you wanna do today?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="feature-card" data-section="news-scraper">
+                            <div class="feature-icon bg-blue-500">📰</div>
+                            <h4 class="text-lg font-semibold mb-2">News Scraper</h4>
+                            <p class="text-sm opacity-70">Stay updated with real-time financial news from multiple sources</p>
+                        </div>
+                        <div class="feature-card" data-section="stock-prices">
+                            <div class="feature-icon bg-green-500">📈</div>
+                            <h4 class="text-lg font-semibold mb-2">Stock Prices</h4>
+                            <p class="text-sm opacity-70">Track and analyze stock performance with detailed insights</p>
+                        </div>
+                        <div class="feature-card" data-section="crypto-insights">
+                            <div class="feature-icon bg-orange-500">₿</div>
+                            <h4 class="text-lg font-semibold mb-2">Crypto Insights</h4>
+                            <p class="text-sm opacity-70">Get comprehensive cryptocurrency market analysis and trends</p>
+                        </div>
+                        <div class="feature-card" data-section="ecommerce">
+                            <div class="feature-icon bg-purple-500">🛒</div>
+                            <h4 class="text-lg font-semibold mb-2">E-Commerce</h4>
+                            <p class="text-sm opacity-70">Search and compare prices for products across multiple platforms</p>
+                        </div>
+                        <div class="feature-card" data-section="mood-playlist">
+                            <div class="feature-icon bg-pink-500">🎵</div>
+                            <h4 class="text-lg font-semibold mb-2">Mood Playlist</h4>
+                            <p class="text-sm opacity-70">Get personalized music recommendations based on your current mood</p>
+                        </div>
+                        <div class="feature-card" data-section="share">
+                            <div class="feature-icon bg-indigo-500">🔗</div>
+                            <h4 class="text-lg font-semibold mb-2">Share</h4>
+                            <p class="text-sm opacity-70">Share your portfolio performance and insights with others</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </header>
-        
-        <!-- Content Sections -->
-        <main class="p-6">
-            <!-- Dashboard Section -->
-            <section id="dashboard-section" class="section active">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Total Scraped</p>
-                                <p class="text-2xl font-bold" id="total-scraped">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-database text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Success Rate</p>
-                                <p class="text-2xl font-bold" id="success-rate">0%</p>
-                            </div>
-                            <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-check text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Active Jobs</p>
-                                <p class="text-2xl font-bold" id="active-jobs">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-clock text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-sm">Last Update</p>
-                                <p class="text-sm" id="last-update">Never</p>
-                            </div>
-                            <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-refresh text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass-card p-6">
-                        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
-                        <div class="space-y-4" id="recent-activity">
-                            <div class="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
-                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-newspaper text-xs"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-sm">News scraping completed</p>
-                                    <p class="text-xs text-gray-400">2 minutes ago</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="recent-activity-list">
-                            <!-- Recent activity items will be added here -->
-                        </div>
-                    </div>
-                    
-                                    <div class="glass-card p-6">
-                    <h3 class="text-lg font-semibold mb-4">Performance Chart</h3>
-                    <canvas id="performance-chart" width="400" height="200"></canvas>
-                </div>
-                
-                <!-- Global Search Results -->
-                <div class="glass-card p-6" id="global-search-results-section" style="display: none;">
-                    <h3 class="text-lg font-semibold mb-4">Search Results</h3>
-                    <div id="global-search-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Global search results will be displayed here -->
-                    </div>
-                </div>
-                </div>
-            </section>
-            
-            <!-- Mood Playlist Section -->
-<section id="mood-playlist" style="margin: 2rem 0; padding: 2rem; background: rgba(30, 41, 59, 0.7); border-radius: 16px;">
-  <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Mood Playlist</h2>
-  
-  <!-- Language Selection -->
-  <div style="margin-bottom: 1rem;">
-    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Select Language:</label>
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-      <button onclick="selectLanguage('english')" class="lang-btn active" data-lang="english" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🇺🇸 English</button>
-      <button onclick="selectLanguage('hindi')" class="lang-btn" data-lang="hindi" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🇮🇳 Hindi</button>
-      <button onclick="selectLanguage('punjabi')" class="lang-btn" data-lang="punjabi" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🇮🇳 Punjabi</button>
-    </div>
-  </div>
-  
-  <!-- Mood Selection Buttons -->
-  <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-    <button onclick="selectMood('happy')" class="mood-btn" data-mood="happy" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">😊 Happy</button>
-    <button onclick="selectMood('sad')" class="mood-btn" data-mood="sad" style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">😢 Sad</button>
-    <button onclick="selectMood('romantic')" class="mood-btn" data-mood="romantic" style="background: #ec4899; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">💕 Romantic</button>
-    <button onclick="selectMood('energetic')" class="mood-btn" data-mood="energetic" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">⚡ Energetic</button>
-    <button onclick="selectMood('calm')" class="mood-btn" data-mood="calm" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">🍃 Calm</button>
-    <button onclick="selectMood('party')" class="mood-btn" data-mood="party" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">🎉 Party</button>
-  </div>
-  
-             <!-- Search and Generate -->
-           <div style="margin-bottom: 1rem;">
-             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-               <input type="text" id="song-search" placeholder="Search for specific songs..." style="flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #374151; border-radius: 6px; background: #1f2937; color: white;">
-               <button onclick="searchSongs()" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🔍 Search</button>
-               <button onclick="generateMoodPlaylist()" id="generate-btn" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🎵 Generate Playlist</button>
-             </div>
-             <div style="margin-top: 0.5rem;">
-               <button onclick="togglePlayMode()" id="play-mode-btn" style="background: #7c3aed; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">🎵 High Quality Audio</button>
-               <span style="color: #9ca3af; font-size: 0.8rem; margin-left: 0.5rem;">Pure audio streaming - no videos, just music</span>
-             </div>
-           </div>
-  
-  <!-- Loading Indicator -->
-  <div id="loading-indicator" style="display: none; text-align: center; padding: 2rem;">
-    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #374151; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-    <p style="margin-top: 1rem;">Scraping songs for your mood...</p>
-  </div>
-  
-  <!-- Playlist Info -->
-  <div id="playlist-info" style="margin-bottom: 1rem; display: none;">
-    <h3 id="current-mood-title" style="font-size: 1.2rem; margin-bottom: 0.5rem;"></h3>
-    <button onclick="playMoodPlaylist()" id="play-btn" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1.2em; cursor: pointer;">▶️ Play All</button>
-  </div>
-  
-  <!-- Music Player -->
-  <div id="music-player" style="display:none; margin-top: 1rem;">
-    <div style="background: #1f2937; border-radius: 12px; padding: 1rem; border: 1px solid #374151;">
-      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-        <div style="width: 60px; height: 60px; background: linear-gradient(45deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-          <i class="fas fa-music" style="color: white; font-size: 1.5rem;"></i>
         </div>
-        <div style="flex: 1;">
-          <div id="current-song-title" style="font-weight: bold; font-size: 1.1rem;">No song playing</div>
-          <div id="current-song-artist" style="color: #9ca3af;">-</div>
-        </div>
-        <div style="display: flex; gap: 0.5rem;">
-          <button onclick="previousTrack()" style="background: #374151; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
-            <i class="fas fa-step-backward"></i>
-          </button>
-          <button onclick="togglePlayPause()" id="play-pause-btn" style="background: #3b82f6; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
-            <i class="fas fa-play"></i>
-          </button>
-          <button onclick="nextTrack()" style="background: #374151; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
-            <i class="fas fa-step-forward"></i>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Audio Player Container -->
-      <div id="audio-container" style="margin-bottom: 1rem;">
-        <!-- Audio controls will be here -->
-      </div>
-      
-      <!-- Progress Bar -->
-      <div style="margin-bottom: 0.5rem;">
-        <div style="background: #374151; height: 4px; border-radius: 2px; position: relative; cursor: pointer;" onclick="seekTo(event)">
-          <div id="progress-bar" style="background: #3b82f6; height: 100%; border-radius: 2px; width: 0%; transition: width 0.1s;"></div>
-        </div>
-      </div>
-      
-      <!-- Time Display -->
-      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #9ca3af;">
-        <span id="current-time">0:00</span>
-        <span id="total-time">0:00</span>
-      </div>
-      
-      <!-- Volume Control -->
-      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-        <i class="fas fa-volume-down" style="color: #9ca3af;"></i>
-        <input type="range" id="volume-control" min="0" max="100" value="50" style="flex: 1; height: 4px; background: #374151; border-radius: 2px; outline: none;">
-        <i class="fas fa-volume-up" style="color: #9ca3af;"></i>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Hidden Audio Element for Background Playback -->
-  <audio id="audio-player" style="display: none;"></audio>
-  
-  <!-- Track List -->
-  <div id="track-list" style="margin-top: 1rem; display: none;">
-    <h4 style="margin-bottom: 0.5rem;">Tracks:</h4>
-    <div id="tracks-container"></div>
-  </div>
-</section>
 
-<style>
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
+        <!-- News Scraper Section -->
+        <div id="news-scraper" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">News Scraper</h1>
+                    <p class="text-lg">Stay updated with real-time financial news from multiple trusted sources.</p>
+                </div>
 
-            
-            <!-- News Scraper Section -->
-            <section id="news-scraper" class="dashboard-section hidden">
-                <h2 class="text-2xl font-bold mb-6 text-white">News Scraper</h2>
-                <div class="glass-card p-6 mb-6">
+                <!-- News Search Controls -->
+                <div class="velmora-card">
+                    <h2 class="text-xl font-semibold mb-4">Search News</h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <input type="text" id="news-keywords" placeholder="Enter keywords..." class="bg-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <select id="news-category" class="bg-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="news-keywords" class="velmora-input" 
+                               placeholder="Enter keywords (e.g., 'Apple earnings')">
+                        <select id="news-category" class="velmora-input">
                             <option value="general">General</option>
                             <option value="business">Business</option>
                             <option value="technology">Technology</option>
                             <option value="sports">Sports</option>
+                            <option value="entertainment">Entertainment</option>
                         </select>
-                        <select id="news-source" class="bg-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="all">All Sources</option>
+                        <select id="news-source" class="velmora-input">
+                            <option value="">All Sources</option>
                             <option value="bbc">BBC</option>
                             <option value="cnn">CNN</option>
                             <option value="reuters">Reuters</option>
+                            <option value="techcrunch">TechCrunch</option>
                         </select>
                     </div>
-                    <button id="scrape-news-btn" class="btn-primary">
-                        <i class="fas fa-search"></i>
-                        Scrape News
+                    <button id="news-search-btn" class="btn-primary">
+                        <i class="fas fa-search mr-2"></i>Search News
                     </button>
                 </div>
-                <div id="news-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- News results will be displayed here -->
-                </div>
-            </section>
 
-            <!-- Stock Tracker Section -->
-            <section id="stock-tracker" class="dashboard-section hidden">
-                <h2 class="text-2xl font-bold mb-6 text-white">Stock Tracker</h2>
-                <div id="stock-data-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Stock data will be displayed here -->
+                <!-- News Results -->
+                <div class="velmora-card">
+                    <h3 class="text-xl font-semibold mb-4">Latest News</h3>
+                    <div id="news-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="text-center py-8">
+                            <p class="opacity-60">Enter keywords and click search to get the latest news</p>
+                        </div>
+                    </div>
                 </div>
-            </section>
-
-            <!-- Crypto Monitor Section -->
-            <section id="crypto-monitor" class="dashboard-section hidden">
-                <h2 class="text-2xl font-bold mb-6 text-white">Crypto Monitor</h2>
-                <div id="crypto-data-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Crypto data will be displayed here -->
-                </div>
-            </section>
-
-            <!-- E-commerce Section -->
-            <section id="ecommerce" class="dashboard-section hidden">
-                <h2 class="text-2xl font-bold mb-6 text-white">E-commerce</h2>
-                <div id="ecommerce-results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- E-commerce results will be displayed here -->
-                </div>
-            </section>
-
-            <!-- Custom Scraper Section -->
-            <section id="custom-scraper" class="dashboard-section hidden p-6 bg-slate-800 rounded-lg">
-              <h2 class="text-3xl font-bold mb-6 text-white">User-Friendly Custom Scraper</h2>
-              <p class="text-slate-400 mb-8">
-                No need for complex selectors. Just enter a URL, and we'll automatically extract the key information for you.
-              </p>
-              
-              <div class="bg-slate-900 p-6 rounded-lg shadow-lg">
-                <div class="flex items-center space-x-4">
-                  <input type="url" id="custom-url-input" class="flex-grow bg-slate-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter any website URL...">
-                  <button id="start-custom-scrape-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
-                    <i class="fas fa-magic mr-2"></i> Auto Scrape
-                  </button>
-                </div>
-              </div>
-
-              <div id="custom-results-container" class="mt-8">
-                <!-- Custom scraping results will be displayed here -->
-              </div>
-            </section>
-
-            <!-- History Section -->
-            <section id="history-section" class="section">
-                <h2 class="text-2xl font-bold mb-4 text-white">Scraping History</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="history-grid">
-                    <!-- History items will be dynamically loaded here -->
-                </div>
-            </section>
-            
-            <!-- Settings Section -->
-            <section id="settings-section" class="section">
-                <h2 class="text-2xl font-bold mb-4 text-white">Settings</h2>
-                <div class="glass-card p-6">
-                    <h3 class="text-lg font-semibold mb-4">Account</h3>
-                    <p class="text-gray-400 mb-4">Current Plan: <span id="current-plan">Free</span></p>
-                    <button class="btn-primary" onclick="upgradePlan()">Upgrade Plan</button>
-                </div>
-                <div class="mt-6 glass-card p-6">
-                    <h3 class="text-lg font-semibold mb-4">API Keys</h3>
-                    <p class="text-gray-400 mb-4">API Key: <span id="api-key">None</span></p>
-                    <button class="btn-secondary" onclick="generateApiKey()">Generate New</button>
-                </div>
-            </section>
-        </main>
-    </div>
-    
-    <!-- Modals -->
-    <div id="article-modal" class="modal">
-        <div class="modal-content">
-            <div class="p-6 border-b border-gray-700 flex items-center justify-between">
-                <h3 class="text-xl font-semibold" id="modal-title">Article Details</h3>
-                <button class="text-gray-400 hover:text-white" onclick="closeModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="p-6" id="modal-body">
-                <!-- Article content will be loaded here -->
             </div>
         </div>
-    </div>
-    
-    <!-- Toast notifications -->
-    <div id="toast-container"></div>
-    
-    <!-- Notification container -->
-    <div id="notification-container" class="fixed top-5 right-5 z-50"></div>
-    
-    <!-- Loading overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-        <div class="bg-slate-800 p-6 rounded-lg">
-            <div class="flex items-center gap-3">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                <span id="loading-text">Loading...</span>
+
+        <!-- Stock Prices Section -->
+        <div id="stock-prices" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Stock Prices</h1>
+                    <p class="text-lg">Track and analyze stock performance with detailed insights.</p>
+                </div>
+
+                <!-- Stock Search -->
+                <div class="velmora-card">
+                    <h2 class="text-xl font-semibold mb-4">Search Stocks</h2>
+                    <div class="flex gap-4">
+                        <input type="text" id="stock-symbol" class="velmora-input flex-1" 
+                               placeholder="Enter stock symbol (e.g., AAPL, GOOGL, TSLA)">
+                        <button id="stock-search-btn" class="btn-primary">
+                            <i class="fas fa-chart-line mr-2"></i>Get Quote
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stock Results -->
+                <div class="velmora-card">
+                    <h3 class="text-xl font-semibold mb-4">Stock Information</h3>
+                    <div id="stock-results-container">
+                        <div class="text-center py-8">
+                            <p class="opacity-60">Enter a stock symbol to get real-time quotes</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    
+
+        <!-- Crypto Insights Section -->
+        <div id="crypto-insights" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Crypto Insights</h1>
+                    <p class="text-lg">Get comprehensive cryptocurrency market analysis and trends.</p>
+                </div>
+
+                <!-- Crypto Search -->
+                <div class="velmora-card">
+                    <h2 class="text-xl font-semibold mb-4">Search Cryptocurrency</h2>
+                    <div class="flex gap-4">
+                        <input type="text" id="crypto-symbol" class="velmora-input flex-1" 
+                               placeholder="Enter crypto symbol (e.g., bitcoin, ethereum, cardano)">
+                        <button id="crypto-search-btn" class="btn-primary">
+                            <i class="fas fa-coins mr-2"></i>Get Price
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Crypto Results -->
+                <div class="velmora-card">
+                    <h3 class="text-xl font-semibold mb-4">Cryptocurrency Information</h3>
+                    <div id="crypto-results-container">
+                        <div class="text-center py-8">
+                            <p class="opacity-60">Enter a cryptocurrency name to get current market data</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- E-Commerce Section -->
+        <div id="ecommerce" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">E-Commerce</h1>
+                    <p class="text-lg">Search and compare prices for products across multiple platforms.</p>
+                </div>
+
+                <!-- Product Search -->
+                <div class="velmora-card">
+                    <h2 class="text-xl font-semibold mb-4">Search Products</h2>
+                    <div class="flex gap-4">
+                        <input type="text" id="ecommerce-query" class="velmora-input flex-1" 
+                               placeholder="Enter product name (e.g., 'iPhone 15', 'MacBook Pro')">
+                        <button id="ecommerce-search-btn" class="btn-primary">
+                            <i class="fas fa-shopping-cart mr-2"></i>Search Products
+                        </button>
+                    </div>
+                </div>
+
+                <!-- E-commerce Results -->
+                <div class="velmora-card">
+                    <h3 class="text-xl font-semibold mb-4">Product Results</h3>
+                    <div id="ecommerce-results-container">
+                        <div class="text-center py-8">
+                            <p class="opacity-60">Enter a product name to search across e-commerce platforms</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mood Playlist Section -->
+        <div id="mood-playlist" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Custom Mood Playlist</h1>
+                    <p class="text-lg">Get personalized music recommendations based on your current mood.</p>
+                </div>
+
+                <!-- Mood Selection -->
+                <div class="velmora-card">
+                    <h2 class="text-xl font-semibold mb-4">How are you feeling today?</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <button class="mood-btn feature-card text-center" data-mood="happy">
+                            <div class="text-4xl mb-2">😊</div>
+                            <p class="font-semibold">Happy</p>
+                        </button>
+                        <button class="mood-btn feature-card text-center" data-mood="sad">
+                            <div class="text-4xl mb-2">😢</div>
+                            <p class="font-semibold">Sad</p>
+                        </button>
+                        <button class="mood-btn feature-card text-center" data-mood="energetic">
+                            <div class="text-4xl mb-2">⚡</div>
+                            <p class="font-semibold">Energetic</p>
+                        </button>
+                        <button class="mood-btn feature-card text-center" data-mood="chill">
+                            <div class="text-4xl mb-2">😌</div>
+                            <p class="font-semibold">Chill</p>
+                        </button>
+                        <button class="mood-btn feature-card text-center" data-mood="romantic">
+                            <div class="text-4xl mb-2">💕</div>
+                            <p class="font-semibold">Romantic</p>
+                        </button>
+                        <button class="mood-btn feature-card text-center" data-mood="focused">
+                            <div class="text-4xl mb-2">🎯</div>
+                            <p class="font-semibold">Focused</p>
+                        </button>
+                        <button class="mood-btn feature-card text-center" data-mood="party">
+                            <div class="text-4xl mb-2">🎉</div>
+                            <p class="font-semibold">Party</p>
+                        </button>
+                        <button class="mood-btn feature-card text-center" data-mood="nostalgic">
+                            <div class="text-4xl mb-2">🌅</div>
+                            <p class="font-semibold">Nostalgic</p>
+                        </button>
+                    </div>
+                    <button id="generate-playlist-btn" class="btn-primary">
+                        <i class="fas fa-music mr-2"></i>Generate Playlist
+                    </button>
+                </div>
+
+                <!-- Playlist Results -->
+                <div class="velmora-card">
+                    <h3 class="text-xl font-semibold mb-4">Your Mood Playlist</h3>
+                    <div id="playlist-results-container">
+                        <div class="text-center py-8">
+                            <p class="opacity-60">Select your mood above to generate a personalized playlist</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share Section -->
+        <div id="share" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Share</h1>
+                    <p class="text-lg">Share your portfolio performance and insights with others.</p>
+                </div>
+
+                <!-- Share Options -->
+                <div class="velmora-card">
+                    <h2 class="text-xl font-semibold mb-4">Share Your Portfolio</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="feature-card">
+                            <div class="feature-icon bg-blue-500">📊</div>
+                            <h4 class="text-lg font-semibold mb-2">Performance Summary</h4>
+                            <p class="text-sm opacity-70 mb-4">Share your investment performance and key metrics</p>
+                            <button class="btn-secondary">Generate Report</button>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon bg-green-500">🔗</div>
+                            <h4 class="text-lg font-semibold mb-2">Share Link</h4>
+                            <p class="text-sm opacity-70 mb-4">Create a shareable link for your public portfolio</p>
+                            <button class="btn-secondary">Create Link</button>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon bg-purple-500">📱</div>
+                            <h4 class="text-lg font-semibold mb-2">Social Media</h4>
+                            <p class="text-sm opacity-70 mb-4">Share your achievements on social platforms</p>
+                            <button class="btn-secondary">Share Now</button>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon bg-orange-500">📄</div>
+                            <h4 class="text-lg font-semibold mb-2">Export Data</h4>
+                            <p class="text-sm opacity-70 mb-4">Download your data in various formats</p>
+                            <button class="btn-secondary">Export</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Profile</h1>
+                    <p class="text-lg">Manage your account settings and preferences.</p>
+                </div>
+
+                <!-- Profile Info -->
+                <div class="velmora-card">
+                    <div class="flex items-center space-x-6 mb-6">
+                        <div class="w-20 h-20 rainbow-gradient rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                            U
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-semibold">Guest User</h2>
+                            <p class="opacity-70">Free Plan</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Display Name</label>
+                            <input type="text" class="velmora-input" value="Guest User">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Email</label>
+                            <input type="email" class="velmora-input" value="guest@velmora.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Timezone</label>
+                            <select class="velmora-input">
+                                <option>UTC-5 (Eastern Time)</option>
+                                <option>UTC-8 (Pacific Time)</option>
+                                <option>UTC+0 (Greenwich Time)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Currency</label>
+                            <select class="velmora-input">
+                                <option>USD ($)</option>
+                                <option>EUR (€)</option>
+                                <option>GBP (£)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary mt-6">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Us Section -->
+        <div id="about" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">About Us</h1>
+                    <p class="text-lg">Learn more about Velmora and our mission.</p>
+                </div>
+
+                <!-- About Content -->
+                <div class="velmora-card">
+                    <div class="text-center mb-8">
+                        <div class="w-24 h-24 rainbow-gradient rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+                            V
+                        </div>
+                        <h2 class="text-3xl font-bold gradient-text mb-4">Velmora</h2>
+                        <p class="text-xl opacity-80">Advanced Web Scraping Platform</p>
+                    </div>
+                    
+                    <div class="prose max-w-none">
+                        <p class="text-lg mb-6">
+                            Velmora is a comprehensive web scraping and data aggregation platform designed to help you stay informed about financial markets, news, and trends. Our mission is to democratize access to real-time data and insights.
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                            <div class="text-center">
+                                <div class="w-16 h-16 green-gradient rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">🎯</div>
+                                <h3 class="text-lg font-semibold mb-2">Our Mission</h3>
+                                <p class="text-sm opacity-70">To provide accessible, real-time data insights for everyone.</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 marigold-gradient rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">⚡</div>
+                                <h3 class="text-lg font-semibold mb-2">Our Vision</h3>
+                                <p class="text-sm opacity-70">A world where data-driven decisions are within everyone's reach.</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 rainbow-gradient rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">🌟</div>
+                                <h3 class="text-lg font-semibold mb-2">Our Values</h3>
+                                <p class="text-sm opacity-70">Transparency, innovation, and user-first design.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div id="reviews" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Reviews</h1>
+                    <p class="text-lg">See what our users are saying about Velmora.</p>
+                </div>
+
+                <!-- Reviews Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="velmora-card">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rainbow-gradient rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                A
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Alex Chen</h4>
+                                <div class="flex text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm opacity-80">"Velmora has transformed how I track my investments. The real-time data is incredibly accurate and the interface is beautiful!"</p>
+                    </div>
+                    
+                    <div class="velmora-card">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 green-gradient rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                S
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Sarah Johnson</h4>
+                                <div class="flex text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm opacity-80">"The news aggregation feature keeps me updated on all market movements. It's like having a personal financial assistant!"</p>
+                    </div>
+                    
+                    <div class="velmora-card">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 marigold-gradient rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                M
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Mike Rodriguez</h4>
+                                <div class="flex text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm opacity-80">"Great platform for tracking crypto prices. The mood playlist feature is a nice touch that makes the experience more enjoyable."</p>
+                    </div>
+                </div>
+
+                <!-- Add Review -->
+                <div class="velmora-card">
+                    <h3 class="text-xl font-semibold mb-4">Leave a Review</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Your Name</label>
+                            <input type="text" class="velmora-input" placeholder="Enter your name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Rating</label>
+                            <div class="flex space-x-2">
+                                <button class="text-2xl text-gray-400 hover:text-yellow-500 transition-colors">⭐</button>
+                                <button class="text-2xl text-gray-400 hover:text-yellow-500 transition-colors">⭐</button>
+                                <button class="text-2xl text-gray-400 hover:text-yellow-500 transition-colors">⭐</button>
+                                <button class="text-2xl text-gray-400 hover:text-yellow-500 transition-colors">⭐</button>
+                                <button class="text-2xl text-gray-400 hover:text-yellow-500 transition-colors">⭐</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Your Review</label>
+                            <textarea class="velmora-input" rows="4" placeholder="Tell us about your experience with Velmora..."></textarea>
+                        </div>
+                        <button class="btn-primary">Submit Review</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings" class="page-section">
+            <div class="space-y-6">
+                <div class="mb-8">
+                    <h1 class="text-4xl mb-2 gradient-text font-bold">Settings</h1>
+                    <p class="text-lg">Customize your Velmora experience.</p>
+                </div>
+
+                <!-- Settings Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Theme Settings -->
+                    <div class="velmora-card">
+                        <h3 class="text-lg font-semibold mb-4">Theme & Appearance</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Theme</label>
+                                <select class="velmora-input">
+                                    <option>Light Mode</option>
+                                    <option>Dark Mode</option>
+                                    <option>Auto (System)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span class="text-sm">Enable animations</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded" checked>
+                                    <span class="text-sm">Show gradient effects</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="velmora-card">
+                        <h3 class="text-lg font-semibold mb-4">Notifications</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded" checked>
+                                    <span class="text-sm">Price alerts</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded" checked>
+                                    <span class="text-sm">News updates</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span class="text-sm">Email notifications</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Settings -->
+                    <div class="velmora-card">
+                        <h3 class="text-lg font-semibold mb-4">Data & Privacy</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded" checked>
+                                    <span class="text-sm">Auto-refresh data</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded">
+                                    <span class="text-sm">Share anonymous usage data</span>
+                                </label>
+                            </div>
+                            <button class="btn-secondary">Clear Cache</button>
+                        </div>
+                    </div>
+
+                    <!-- API Settings -->
+                    <div class="velmora-card">
+                        <h3 class="text-lg font-semibold mb-4">API Configuration</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Refresh Interval (seconds)</label>
+                                <input type="number" class="velmora-input" value="30" min="10" max="300">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Results Limit</label>
+                                <select class="velmora-input">
+                                    <option>10</option>
+                                    <option>20</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Save Settings -->
+                <div class="text-center">
+                    <button class="btn-primary text-lg px-8 py-3">Save All Settings</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          const socket = io("http://localhost:3000", {
-            transports: ['websocket', 'polling']
-          });
+        // Initialize Socket.IO connection
+        const socket = io();
 
-          // --- DOM Element Selection ---
-          const navItems = document.querySelectorAll('.nav-item');
-          const sections = document.querySelectorAll('.dashboard-section');
-          const globalSearchInput = document.getElementById('global-search-input');
-          const startScrapingBtn = document.getElementById('start-scraping-btn');
-          
-          // Section: News Scraper
-          const newsKeywordsInput = document.getElementById('news-keywords');
-          const newsCategorySelect = document.getElementById('news-category');
-          const newsSourceSelect = document.getElementById('news-source');
-          const scrapeNewsBtn = document.getElementById('scrape-news-btn');
-          const newsResultsContainer = document.getElementById('news-results-container');
+        // Get DOM elements
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        const featureCards = document.querySelectorAll('.feature-card');
+        const sections = document.querySelectorAll('.page-section');
+        const dropdown = document.querySelector('.dropdown');
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+        
+        // Global search elements
+        const globalSearchInput = document.getElementById('global-search-input');
+        const startScrapingBtn = document.getElementById('start-scraping-btn');
+        const globalSearchResultsSection = document.getElementById('global-search-results-section');
+        const globalSearchResultsContainer = document.getElementById('global-search-results-container');
+        
+        // Section-specific elements
+        const newsKeywordsInput = document.getElementById('news-keywords');
+        const newsCategorySelect = document.getElementById('news-category');
+        const newsSourceSelect = document.getElementById('news-source');
+        const newsSearchBtn = document.getElementById('news-search-btn');
+        const newsResultsContainer = document.getElementById('news-results-container');
+        
+        const stockSymbolInput = document.getElementById('stock-symbol');
+        const stockSearchBtn = document.getElementById('stock-search-btn');
+        const stockResultsContainer = document.getElementById('stock-results-container');
+        
+        const cryptoSymbolInput = document.getElementById('crypto-symbol');
+        const cryptoSearchBtn = document.getElementById('crypto-search-btn');
+        const cryptoResultsContainer = document.getElementById('crypto-results-container');
+        
+        const ecommerceQueryInput = document.getElementById('ecommerce-query');
+        const ecommerceSearchBtn = document.getElementById('ecommerce-search-btn');
+        const ecommerceResultsContainer = document.getElementById('ecommerce-results-container');
+        
+        const generatePlaylistBtn = document.getElementById('generate-playlist-btn');
+        const playlistResultsContainer = document.getElementById('playlist-results-container');
+        const moodButtons = document.querySelectorAll('.mood-btn');
+        
+        const recentActivityList = document.getElementById('recent-activity-list');
+        const notificationContainer = document.getElementById('notification-container');
 
-          // Section: Data Containers
-          const stockDataContainer = document.getElementById('stock-data-container');
-          const cryptoDataContainer = document.getElementById('crypto-data-container');
-          const ecommerceResultsContainer = document.getElementById('ecommerce-results-container');
+        let selectedMood = '';
 
-          // Section: Custom Scraper
-          const customUrlInput = document.getElementById('custom-url-input');
-          const startCustomScrapeBtn = document.getElementById('start-custom-scrape-btn');
-          const customResultsContainer = document.getElementById('custom-results-container');
-          
-          // --- Notifications & Activity ---
-          const notificationContainer = document.getElementById('notification-container');
-          const recentActivityList = document.getElementById('recent-activity-list');
-          
-          // --- Global Search Results ---
-          const globalSearchResultsSection = document.getElementById('global-search-results-section');
-          const globalSearchResultsContainer = document.getElementById('global-search-results-container');
+        // Socket.IO Event Handlers
+        socket.on('connect', () => {
+            console.log('✅ Connected to server');
+            addRecentActivity('Connected to Velmora server', 'success');
+        });
 
-          // --- Initial Setup ---
-          function initializeApp() {
-            const initialSection = 'dashboard';
-            const sectionElement = document.getElementById(initialSection);
-            if (sectionElement) {
-              sectionElement.classList.remove('hidden');
-            }
-            const activeNavItem = document.querySelector(`.nav-item[data-section="${initialSection}"]`);
-            if (activeNavItem) {
-              activeNavItem.classList.add('active');
-            }
-            loadSectionData(initialSection);
-          }
+        socket.on('disconnect', () => {
+            console.log('❌ Disconnected from server');
+            addRecentActivity('Disconnected from server', 'error');
+        });
 
-          // --- Socket.IO Event Handlers ---
-          socket.on('connect', () => {
-            console.log('✅ WebSocket connection established.');
-            showNotification('Connected to server', 'success');
-          });
-
-          socket.on('disconnect', () => {
-            console.log('❌ WebSocket connection lost.');
-            showNotification('Disconnected from server', 'error');
-          });
-          
-          socket.on('scrape_update', (result) => {
+        socket.on('scrape_update', (result) => {
             console.log('🔍 [FRONTEND DEBUG] Received scrape_update:', result);
             console.log('🔍 [FRONTEND DEBUG] Result success:', result.success);
             console.log('🔍 [FRONTEND DEBUG] Result data length:', result.data ? result.data.length : 'No data');
             
             // Check if this is a global search (from dashboard) or section-specific search
-            const currentSection = document.querySelector('.nav-item.active')?.getAttribute('data-section');
+            const currentSection = document.querySelector('.nav-btn.active')?.getAttribute('data-section');
             console.log('🔍 [FRONTEND DEBUG] Current section:', currentSection);
             
             if (currentSection === 'dashboard') {
-              // Global search - show results on dashboard
-              console.log('🔍 [FRONTEND DEBUG] Handling as global search');
-              handleGlobalSearchResponse(result);
+                // Global search - show results on dashboard
+                console.log('🔍 [FRONTEND DEBUG] Handling as global search');
+                handleGlobalSearchResponse(result);
             } else {
-              // Section-specific search - show in section container
-              console.log('🔍 [FRONTEND DEBUG] Handling as section-specific search');
-              handleScrapeResponse(result, 'News', newsResultsContainer, renderNews);
+                // Section-specific search - show in section container
+                console.log('🔍 [FRONTEND DEBUG] Handling as section-specific search');
+                handleScrapeResponse(result, 'News', newsResultsContainer, renderNews);
             }
-          });
+        });
 
-          socket.on('custom_scrape_update', (result) => {
-            handleScrapeResponse(result, 'Custom', customResultsContainer, renderCustomResults);
-          });
-
-          function handleScrapeResponse(result, type, container, renderer) {
-            if (result.success) {
-              showNotification(result.message, 'success');
-              renderer(result.data);
-              addRecentActivity(`${type} scraping finished successfully.`, 'success');
-            } else {
-              showNotification(result.message || `Failed to get ${type.toLowerCase()} data.`, 'error');
-              container.innerHTML = `<p class="text-red-400 text-center">${result.message}</p>`;
-            }
-          }
-          
-          function handleGlobalSearchResponse(result) {
-            console.log('🎯 [FRONTEND DEBUG] handleGlobalSearchResponse called with:', result);
-            console.log('🎯 [FRONTEND DEBUG] globalSearchResultsSection element:', globalSearchResultsSection);
-            console.log('🎯 [FRONTEND DEBUG] globalSearchResultsContainer element:', globalSearchResultsContainer);
-            
-            if (result.success) {
-              console.log('✅ [FRONTEND DEBUG] Success - showing results');
-              showNotification(result.message, 'success');
-              // Show the search results section
-              globalSearchResultsSection.style.display = 'block';
-              console.log('🎯 [FRONTEND DEBUG] Made search results section visible');
-              // Render the results
-              renderNews(result.data, globalSearchResultsContainer);
-              console.log('🎯 [FRONTEND DEBUG] Called renderNews with data length:', result.data.length);
-              addRecentActivity(`Global search completed: <strong>${result.data.length} articles found</strong>`, 'success');
-            } else {
-              console.log('❌ [FRONTEND DEBUG] Error - showing error message');
-              showNotification(result.message || 'Search failed', 'error');
-              globalSearchResultsContainer.innerHTML = `<p class="text-red-400 text-center">${result.message}</p>`;
-              globalSearchResultsSection.style.display = 'block';
-            }
-          }
-
-          // --- Navigation ---
-          navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-              e.preventDefault();
-              const sectionId = item.getAttribute('data-section');
-              
-              navItems.forEach(nav => nav.classList.remove('active'));
-              item.classList.add('active');
-              
-              sections.forEach(section => section.classList.add('hidden'));
-              const targetSection = document.getElementById(sectionId);
-              if(targetSection) {
-                targetSection.classList.remove('hidden');
-              }
-              
-              loadSectionData(sectionId);
+        // Navigation Functions
+        function showSection(sectionId) {
+            // Hide all sections
+            sections.forEach(section => {
+                section.classList.remove('active');
             });
-          });
-
-          // --- Data Loading & Section Logic ---
-          function loadSectionData(sectionId) {
-            console.log(`Loading data for section: ${sectionId}`);
-            switch (sectionId) {
-              case 'dashboard': loadDashboardData(); break;
-              case 'news-scraper': loadNewsData(); break;
-              case 'stock-tracker': loadStockData(); break;
-              case 'crypto-monitor': loadCryptoData(); break;
-              case 'ecommerce': loadEcommerceData(); break;
-              case 'custom-scraper':
-                customResultsContainer.innerHTML = '<p class="text-center text-slate-500">Enter a URL to start scraping.</p>';
-                break;
-              default:
-                const section = document.getElementById(sectionId);
-                if (section) {
-                  section.innerHTML = `<div class="text-center p-8"><h3 class="text-xl text-slate-400">Coming Soon!</h3><p class="text-slate-500">This feature is under development.</p></div>`;
-                }
+            
+            // Show target section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
             }
-          }
+            
+            // Update nav button states
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            dropdownItems.forEach(item => item.classList.remove('active'));
+            
+            // Find and activate the corresponding nav button
+            const navBtn = document.querySelector(`[data-section="${sectionId}"]`);
+            if (navBtn) {
+                navBtn.classList.add('active');
+            }
+            
+            // Close dropdown
+            dropdown.classList.remove('active');
+        }
 
-          // --- Event Listeners ---
-          if(startScrapingBtn) {
-            startScrapingBtn.addEventListener('click', handleGlobalSearch);
-          }
-          if(globalSearchInput) {
-            globalSearchInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleGlobalSearch());
-          }
-          if(scrapeNewsBtn) {
-            scrapeNewsBtn.addEventListener('click', handleNewsScrape);
-          }
-          if(startCustomScrapeBtn) {
-            startCustomScrapeBtn.addEventListener('click', handleCustomScrape);
-          }
+        // Navigation Event Listeners
+        navButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = button.getAttribute('data-section');
+                showSection(sectionId);
+            });
+        });
 
-          function handleGlobalSearch() {
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = item.getAttribute('data-section');
+                showSection(sectionId);
+            });
+        });
+
+        featureCards.forEach(card => {
+            const sectionId = card.getAttribute('data-section');
+            if (sectionId) {
+                card.addEventListener('click', () => {
+                    showSection(sectionId);
+                });
+            }
+        });
+
+        // Dropdown Toggle
+        dropdownToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            dropdown.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        // Global Search Functions
+        function handleGlobalSearch() {
             const query = globalSearchInput.value.trim();
             console.log('🚀 [FRONTEND DEBUG] handleGlobalSearch called with query:', query);
             
             if (!query) return showNotification('Please enter a search term.', 'error');
             
             // Clear previous results
-            globalSearchResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="text-slate-400 mt-2">Searching...</p></div>';
+            globalSearchResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="opacity-60 mt-2">Searching...</p></div>';
             globalSearchResultsSection.style.display = 'block';
             console.log('🚀 [FRONTEND DEBUG] Set loading state and made section visible');
             
@@ -932,736 +1271,429 @@
             socket.emit('scrape_request', requestData);
             addRecentActivity(`Global search started for: <strong>${query}</strong>`);
             console.log('🚀 [FRONTEND DEBUG] Request sent successfully');
-          }
+        }
 
-          function handleNewsScrape() {
+        function handleGlobalSearchResponse(result) {
+            console.log('🎯 [FRONTEND DEBUG] handleGlobalSearchResponse called with:', result);
+            console.log('🎯 [FRONTEND DEBUG] globalSearchResultsSection element:', globalSearchResultsSection);
+            console.log('🎯 [FRONTEND DEBUG] globalSearchResultsContainer element:', globalSearchResultsContainer);
+            
+            if (result.success) {
+                console.log('✅ [FRONTEND DEBUG] Success - showing results');
+                showNotification(result.message, 'success');
+                // Show the search results section
+                globalSearchResultsSection.style.display = 'block';
+                console.log('🎯 [FRONTEND DEBUG] Made search results section visible');
+                // Render the results
+                renderNews(result.data, globalSearchResultsContainer);
+                console.log('🎯 [FRONTEND DEBUG] Called renderNews with data length:', result.data.length);
+                addRecentActivity(`Global search completed: <strong>${result.data.length} articles found</strong>`, 'success');
+            } else {
+                console.log('❌ [FRONTEND DEBUG] Error - showing error message');
+                showNotification(result.message || 'Search failed', 'error');
+                globalSearchResultsContainer.innerHTML = `<p class="text-red-400 text-center">${result.message}</p>`;
+                globalSearchResultsSection.style.display = 'block';
+            }
+        }
+
+        // Section-Specific Search Functions
+        function handleNewsScrape() {
             const keywords = newsKeywordsInput.value.trim();
             if (!keywords) return showNotification('Please enter keywords.', 'error');
             
             const request = {
-              type: 'news',
-              query: keywords,
-              category: newsCategorySelect.value,
-              source: newsSourceSelect.value
+                type: 'news',
+                query: keywords,
+                category: newsCategorySelect.value,
+                source: newsSourceSelect.value
             };
             
+            newsResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="opacity-60 mt-2">Searching news...</p></div>';
             showNotification(`Scraping news for "${keywords}"...`);
             socket.emit('scrape_request', request);
             addRecentActivity(`News scraping started for: <strong>${keywords}</strong>`);
-          }
+        }
 
-          function handleCustomScrape() {
-            const url = customUrlInput.value.trim();
-            if (!url) return showNotification('Please enter a URL.', 'error');
-            showNotification(`Starting auto-scrape for "${url}"...`);
-            customResultsContainer.innerHTML = '<div class="text-center py-4"><div class="loader"></div><p class="text-slate-400 mt-2">Analyzing page...</p></div>';
-            socket.emit('custom_scrape_request', { url });
-            addRecentActivity(`Custom scraping started for: <strong>${url}</strong>`);
-          }
+        function handleStockSearch() {
+            const symbol = stockSymbolInput.value.trim().toUpperCase();
+            if (!symbol) return showNotification('Please enter a stock symbol.', 'error');
+            
+            stockResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="opacity-60 mt-2">Fetching stock data...</p></div>';
+            showNotification(`Getting quote for ${symbol}...`);
+            
+            fetch(`/api/scrape/stocks?symbol=${symbol}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderStocks([data.data], stockResultsContainer);
+                        showNotification(`Stock data for ${symbol} loaded successfully`, 'success');
+                        addRecentActivity(`Stock quote retrieved for: <strong>${symbol}</strong>`, 'success');
+                    } else {
+                        stockResultsContainer.innerHTML = `<p class="text-red-400 text-center">${data.message}</p>`;
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    stockResultsContainer.innerHTML = '<p class="text-red-400 text-center">Failed to fetch stock data</p>';
+                    showNotification('Failed to fetch stock data', 'error');
+                });
+        }
 
-          // --- API Fetching for Initial Data ---
-          async function loadDashboardData() { /* ...logic for dashboard... */ }
-          async function loadNewsData() { newsResultsContainer.innerHTML = '<p class="text-center text-slate-500">Use the controls above to find news articles.</p>'; }
-          async function loadStockData() { fetchAndRender('/api/scrape/stocks', stockDataContainer, renderStocks); }
-          async function loadCryptoData() { fetchAndRender('/api/scrape/crypto', cryptoDataContainer, renderCrypto); }
-          function loadEcommerceData() {
-            fetchAndRender('/api/scrape/ecommerce', ecommerceResultsContainer, renderEcommerce);
-          }
+        function handleCryptoSearch() {
+            const symbol = cryptoSymbolInput.value.trim().toLowerCase();
+            if (!symbol) return showNotification('Please enter a cryptocurrency name.', 'error');
+            
+            cryptoResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="opacity-60 mt-2">Fetching crypto data...</p></div>';
+            showNotification(`Getting price for ${symbol}...`);
+            
+            fetch(`/api/scrape/crypto?symbol=${symbol}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderCrypto([data.data], cryptoResultsContainer);
+                        showNotification(`Crypto data for ${symbol} loaded successfully`, 'success');
+                        addRecentActivity(`Crypto price retrieved for: <strong>${symbol}</strong>`, 'success');
+                    } else {
+                        cryptoResultsContainer.innerHTML = `<p class="text-red-400 text-center">${data.message}</p>`;
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    cryptoResultsContainer.innerHTML = '<p class="text-red-400 text-center">Failed to fetch crypto data</p>';
+                    showNotification('Failed to fetch crypto data', 'error');
+                });
+        }
 
-          async function fetchAndRender(endpoint, container, renderer) {
-            try {
-              const res = await fetch(endpoint);
-              if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-              const result = await res.json();
-              if (result.success) {
-                renderer(result.data, container);
-              } else {
-                throw new Error(result.message || 'API request failed');
-              }
-            } catch (e) {
-              console.error(`Failed to load data from ${endpoint}:`, e);
-              container.innerHTML = `<p class="text-red-400 text-center">Could not load data. ${e.message}</p>`;
-            }
-          }
+        function handleEcommerceSearch() {
+            const query = ecommerceQueryInput.value.trim();
+            if (!query) return showNotification('Please enter a product name.', 'error');
+            
+            ecommerceResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="opacity-60 mt-2">Searching products...</p></div>';
+            showNotification(`Searching for "${query}"...`);
+            
+            fetch(`/api/scrape/ecommerce?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderEcommerce(data.data, ecommerceResultsContainer);
+                        showNotification(`Products found for "${query}"`, 'success');
+                        addRecentActivity(`E-commerce search completed for: <strong>${query}</strong>`, 'success');
+                    } else {
+                        ecommerceResultsContainer.innerHTML = `<p class="text-red-400 text-center">${data.message}</p>`;
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    ecommerceResultsContainer.innerHTML = '<p class="text-red-400 text-center">Failed to search products</p>';
+                    showNotification('Failed to search products', 'error');
+                });
+        }
 
-          // --- Rendering Functions ---
-          function renderStocks(data, container) {
-            if (!data || data.length === 0) return container.innerHTML = '<p class="text-center text-slate-500">No stock data available.</p>';
-            container.innerHTML = data.map(stock => `
-              <div class="bg-slate-800 p-4 rounded-lg">
-                <h4 class="text-lg font-bold text-white">${stock.name} (${stock.symbol})</h4>
-                <p class="text-2xl text-green-400">$${stock.price.toFixed(2)}</p>
-                <p class="${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}">${stock.change.toFixed(2)} (${stock.changePercent.toFixed(2)}%)</p>
-              </div>`).join('');
-          }
+        function handlePlaylistGeneration() {
+            if (!selectedMood) return showNotification('Please select a mood first.', 'error');
+            
+            playlistResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="opacity-60 mt-2">Generating playlist...</p></div>';
+            showNotification(`Generating ${selectedMood} playlist...`);
+            
+            // Simulate playlist generation
+            setTimeout(() => {
+                const mockPlaylist = generateMockPlaylist(selectedMood);
+                renderPlaylist(mockPlaylist, playlistResultsContainer);
+                showNotification(`${selectedMood} playlist generated successfully!`, 'success');
+                addRecentActivity(`Mood playlist generated: <strong>${selectedMood}</strong>`, 'success');
+            }, 2000);
+        }
 
-          function renderCrypto(data, container) {
-            if (!data || data.length === 0) return container.innerHTML = '<p class="text-center text-slate-500">No crypto data available.</p>';
-            container.innerHTML = data.map(crypto => `
-              <div class="bg-slate-800 p-4 rounded-lg">
-                <h4 class="text-lg font-bold text-white">${crypto.name} (${crypto.symbol})</h4>
-                <p class="text-2xl text-cyan-400">$${crypto.price.toFixed(2)}</p>
-                <p class="${crypto.change >= 0 ? 'text-green-500' : 'text-red-500'}">${crypto.change.toFixed(2)} (${crypto.changePercent.toFixed(2)}%)</p>
-              </div>`).join('');
-          }
+        // Mood Selection
+        moodButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                moodButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectedMood = button.getAttribute('data-mood');
+                showNotification(`${selectedMood} mood selected`, 'info');
+            });
+        });
 
-          function renderNews(data, container = newsResultsContainer) {
+        // Event Listeners
+        if (startScrapingBtn) {
+            startScrapingBtn.addEventListener('click', handleGlobalSearch);
+        }
+
+        if (newsSearchBtn) {
+            newsSearchBtn.addEventListener('click', handleNewsScrape);
+        }
+
+        if (stockSearchBtn) {
+            stockSearchBtn.addEventListener('click', handleStockSearch);
+        }
+
+        if (cryptoSearchBtn) {
+            cryptoSearchBtn.addEventListener('click', handleCryptoSearch);
+        }
+
+        if (ecommerceSearchBtn) {
+            ecommerceSearchBtn.addEventListener('click', handleEcommerceSearch);
+        }
+
+        if (generatePlaylistBtn) {
+            generatePlaylistBtn.addEventListener('click', handlePlaylistGeneration);
+        }
+
+        // Enter key support
+        if (globalSearchInput) {
+            globalSearchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleGlobalSearch();
+            });
+        }
+
+        if (newsKeywordsInput) {
+            newsKeywordsInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleNewsScrape();
+            });
+        }
+
+        if (stockSymbolInput) {
+            stockSymbolInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleStockSearch();
+            });
+        }
+
+        if (cryptoSymbolInput) {
+            cryptoSymbolInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleCryptoSearch();
+            });
+        }
+
+        if (ecommerceQueryInput) {
+            ecommerceQueryInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleEcommerceSearch();
+            });
+        }
+
+        // Rendering Functions
+        function renderNews(data, container = newsResultsContainer) {
             console.log('📰 [FRONTEND DEBUG] renderNews called with data:', data);
             console.log('📰 [FRONTEND DEBUG] renderNews container:', container);
             console.log('📰 [FRONTEND DEBUG] Data length:', data ? data.length : 'null/undefined');
             
             if (!data || data.length === 0) {
-              console.log('❌ [FRONTEND DEBUG] No data to render');
-              return container.innerHTML = '<p class="text-center text-slate-500">No articles found for your query.</p>';
+                console.log('❌ [FRONTEND DEBUG] No data to render');
+                return container.innerHTML = '<p class="text-center opacity-60">No articles found for your query.</p>';
             }
             
             console.log('✅ [FRONTEND DEBUG] Rendering', data.length, 'articles');
             container.innerHTML = data.map(article => {
-              console.log('📰 [FRONTEND DEBUG] Processing article:', article.title);
-              return `
-                <div class="bg-slate-800 p-4 rounded-lg">
-                  <h4 class="text-lg font-bold text-white">${article.title}</h4>
-                  <p class="text-slate-400">${article.content}</p>
-                  <span class="text-sm text-blue-400">${article.source}</span>
-                </div>`;
+                console.log('📰 [FRONTEND DEBUG] Processing article:', article.title);
+                return `
+                    <div class="velmora-card bounce-in">
+                        <h4 class="text-lg font-semibold mb-2">${article.title}</h4>
+                        <p class="text-sm opacity-70 mb-3">${article.content || article.description || 'No description available'}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-blue-400">${article.source}</span>
+                            ${article.url ? `<a href="${article.url}" target="_blank" class="btn-secondary text-xs">Read More</a>` : ''}
+                        </div>
+                        ${article.publishedAt ? `<p class="text-xs opacity-50 mt-2">${new Date(article.publishedAt).toLocaleString()}</p>` : ''}
+                    </div>`;
             }).join('');
             console.log('✅ [FRONTEND DEBUG] Finished rendering articles to container');
-          }
+        }
 
-          function renderEcommerce(data, container) {
-            if (!data || (Array.isArray(data) && data.length === 0)) {
-                return container.innerHTML = '<p class="text-center text-slate-500">No products found.</p>';
+        function renderStocks(data, container) {
+            if (!data || data.length === 0) {
+                return container.innerHTML = '<p class="text-center opacity-60">No stock data available.</p>';
             }
-            const products = Array.isArray(data) ? data : [data];
-            container.innerHTML = products.map(product => `
-                <div class="bg-slate-800 p-4 rounded-lg">
-                    <h4 class="text-lg font-bold text-white">${product.product_title || product.title || 'No Title'}</h4>
-                    <p class="text-slate-400">${product.product_price ? '$' + product.product_price : ''}</p>
-                    <span class="text-sm text-blue-400">${product.asin || ''}</span>
+            
+            container.innerHTML = data.map(stock => `
+                <div class="velmora-card bounce-in">
+                    <h4 class="text-lg font-semibold mb-2">${stock.name || stock.symbol}</h4>
+                    <p class="text-2xl font-bold text-green-600 mb-2">$${stock.price}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm ${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${stock.change >= 0 ? '+' : ''}${stock.change} (${stock.changePercent}%)
+                        </span>
+                        <span class="text-sm opacity-60">${stock.symbol}</span>
+                    </div>
                 </div>
             `).join('');
-}
+        }
 
-          function renderCustomResults(data, container = customResultsContainer) {
+        function renderCrypto(data, container) {
+            if (!data || data.length === 0) {
+                return container.innerHTML = '<p class="text-center opacity-60">No crypto data available.</p>';
+            }
+            
+            container.innerHTML = data.map(crypto => `
+                <div class="velmora-card bounce-in">
+                    <h4 class="text-lg font-semibold mb-2">${crypto.name}</h4>
+                    <p class="text-2xl font-bold text-orange-500 mb-2">$${crypto.price.toFixed(2)}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm ${crypto.change >= 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${crypto.change >= 0 ? '+' : ''}${crypto.change.toFixed(2)}%
+                        </span>
+                        <span class="text-sm opacity-60">${crypto.symbol.toUpperCase()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderEcommerce(data, container) {
+            if (!data || (Array.isArray(data) && data.length === 0)) {
+                return container.innerHTML = '<p class="text-center opacity-60">No products found.</p>';
+            }
+            
+            const products = Array.isArray(data) ? data : [data];
+            container.innerHTML = products.map(product => `
+                <div class="velmora-card bounce-in">
+                    <h4 class="text-lg font-semibold mb-2">${product.product_title || product.title || 'No Title'}</h4>
+                    ${product.product_price ? `<p class="text-xl font-bold text-purple-600 mb-2">$${product.product_price}</p>` : ''}
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm opacity-60">${product.asin || 'N/A'}</span>
+                        ${product.product_url ? `<a href="${product.product_url}" target="_blank" class="btn-secondary text-xs">View Product</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateMockPlaylist(mood) {
+            const playlists = {
+                happy: [
+                    { title: "Good as Hell", artist: "Lizzo", duration: "3:32" },
+                    { title: "Happy", artist: "Pharrell Williams", duration: "3:53" },
+                    { title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", duration: "4:30" },
+                    { title: "Can't Stop the Feeling!", artist: "Justin Timberlake", duration: "3:56" },
+                    { title: "I Gotta Feeling", artist: "The Black Eyed Peas", duration: "4:05" }
+                ],
+                sad: [
+                    { title: "Someone Like You", artist: "Adele", duration: "4:45" },
+                    { title: "Mad World", artist: "Gary Jules", duration: "3:07" },
+                    { title: "Hurt", artist: "Johnny Cash", duration: "3:38" },
+                    { title: "Black", artist: "Pearl Jam", duration: "5:43" },
+                    { title: "The Night We Met", artist: "Lord Huron", duration: "3:28" }
+                ],
+                energetic: [
+                    { title: "Thunder", artist: "Imagine Dragons", duration: "3:07" },
+                    { title: "Pump It", artist: "The Black Eyed Peas", duration: "3:33" },
+                    { title: "Eye of the Tiger", artist: "Survivor", duration: "4:04" },
+                    { title: "Stronger", artist: "Kanye West", duration: "5:11" },
+                    { title: "Don't Stop Me Now", artist: "Queen", duration: "3:29" }
+                ],
+                chill: [
+                    { title: "Breathe Me", artist: "Sia", duration: "4:31" },
+                    { title: "Mad About You", artist: "Billie Eilish", duration: "3:14" },
+                    { title: "Weightless", artist: "Marconi Union", duration: "8:10" },
+                    { title: "Sunset Lover", artist: "Petit Biscuit", duration: "3:44" },
+                    { title: "River", artist: "Leon Bridges", duration: "4:02" }
+                ],
+                romantic: [
+                    { title: "Perfect", artist: "Ed Sheeran", duration: "4:23" },
+                    { title: "All of Me", artist: "John Legend", duration: "4:29" },
+                    { title: "Thinking Out Loud", artist: "Ed Sheeran", duration: "4:41" },
+                    { title: "Make You Feel My Love", artist: "Adele", duration: "3:32" },
+                    { title: "At Last", artist: "Etta James", duration: "3:01" }
+                ],
+                focused: [
+                    { title: "Weightless", artist: "Marconi Union", duration: "8:10" },
+                    { title: "Clair de Lune", artist: "Claude Debussy", duration: "5:25" },
+                    { title: "Gymnopédie No. 1", artist: "Erik Satie", duration: "4:28" },
+                    { title: "Ambient 1", artist: "Brian Eno", duration: "6:14" },
+                    { title: "Sleep Baby Sleep", artist: "Broods", duration: "4:23" }
+                ],
+                party: [
+                    { title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", duration: "4:30" },
+                    { title: "Can't Stop the Feeling!", artist: "Justin Timberlake", duration: "3:56" },
+                    { title: "Party Rock Anthem", artist: "LMFAO", duration: "4:24" },
+                    { title: "I Gotta Feeling", artist: "The Black Eyed Peas", duration: "4:05" },
+                    { title: "Good 4 U", artist: "Olivia Rodrigo", duration: "2:58" }
+                ],
+                nostalgic: [
+                    { title: "Yesterday", artist: "The Beatles", duration: "2:05" },
+                    { title: "The Way You Look Tonight", artist: "Frank Sinatra", duration: "3:21" },
+                    { title: "Stand By Me", artist: "Ben E. King", duration: "2:59" },
+                    { title: "What a Wonderful World", artist: "Louis Armstrong", duration: "2:20" },
+                    { title: "Unchained Melody", artist: "The Righteous Brothers", duration: "3:36" }
+                ]
+            };
+            
+            return playlists[mood] || playlists.happy;
+        }
+
+        function renderPlaylist(songs, container) {
             container.innerHTML = `
-              <div class="bg-slate-900 p-6 rounded-lg">
-                <h3 class="text-xl font-bold text-white mb-4">${data.title}</h3>
-                <div class="mb-4">
-                  <h4 class="font-semibold text-slate-300 mb-2">Headings:</h4>
-                  <ul class="list-disc list-inside text-slate-400">${data.headings.map(h => `<li>${h}</li>`).join('')}</ul>
+                <div class="space-y-3">
+                    ${songs.map((song, index) => `
+                        <div class="velmora-card flex items-center justify-between bounce-in" style="animation-delay: ${index * 0.1}s">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 rainbow-gradient rounded-full flex items-center justify-center text-white font-semibold">
+                                    ${index + 1}
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">${song.title}</h4>
+                                    <p class="text-sm opacity-70">${song.artist}</p>
+                                </div>
+                            </div>
+                            <div class="text-sm opacity-60">${song.duration}</div>
+                        </div>
+                    `).join('')}
+                    <div class="text-center mt-6">
+                        <button class="btn-primary">
+                            <i class="fas fa-play mr-2"></i>Play Playlist
+                        </button>
+                    </div>
                 </div>
-                <div>
-                  <h4 class="font-semibold text-slate-300 mb-2">Links:</h4>
-                  <ul class="list-disc list-inside text-slate-400">${data.links.map(l => `<li><a href="${l.href}" target="_blank" class="text-blue-400 hover:underline">${l.text}</a></li>`).join('')}</ul>
-                </div>
-              </div>`;
-          }
-          
-          // --- UI Helpers ---
-          function showNotification(message, type = 'info') {
-            const colors = { info: 'bg-blue-500', success: 'bg-green-500', error: 'bg-red-500' };
+            `;
+        }
+
+        // Utility Functions
+        function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
-            notification.className = `fixed top-5 right-5 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in-out ${colors[type]}`;
+            notification.className = `notification ${type}`;
             notification.textContent = message;
             notificationContainer.appendChild(notification);
-            setTimeout(() => notification.remove(), 4000);
-          }
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
 
-          function addRecentActivity(html, type = 'info') {
-            const icons = { info: 'fa-info-circle text-blue-400', success: 'fa-check-circle text-green-400', error: 'fa-exclamation-triangle text-red-400' };
+        function addRecentActivity(message, type = 'info') {
+            const icons = { 
+                info: 'fa-info-circle text-blue-400', 
+                success: 'fa-check-circle text-green-400', 
+                error: 'fa-exclamation-triangle text-red-400' 
+            };
+            
             const item = document.createElement('div');
-            item.className = 'flex items-start space-x-3 p-3 bg-slate-800/50 rounded-lg';
+            item.className = 'flex items-start space-x-3 p-3 bg-opacity-20 bg-green-500 rounded-lg';
             item.innerHTML = `
-              <i class="fas ${icons[type]} mt-1"></i>
-              <div>
-                <p class="text-sm text-slate-300">${html}</p>
-                <p class="text-xs text-slate-500">${new Date().toLocaleTimeString()}</p>
-              </div>`;
+                <i class="fas ${icons[type]} mt-1"></i>
+                <div>
+                    <p class="text-sm">${message}</p>
+                    <p class="text-xs opacity-60">${new Date().toLocaleTimeString()}</p>
+                </div>
+            `;
+            
             recentActivityList.prepend(item);
+            
+            // Keep only last 5 items
             if (recentActivityList.children.length > 5) {
-              recentActivityList.lastChild.remove();
+                recentActivityList.lastChild.remove();
             }
-          }
+        }
 
-          // --- Let's Go! ---
-          initializeApp();
-        });
+        function handleScrapeResponse(result, type, container, renderer) {
+            if (result.success) {
+                showNotification(result.message, 'success');
+                renderer(result.data, container);
+                addRecentActivity(`${type} scraping finished successfully.`, 'success');
+            } else {
+                showNotification(result.message || `Failed to get ${type.toLowerCase()} data.`, 'error');
+                container.innerHTML = `<p class="text-red-400 text-center">${result.message}</p>`;
+            }
+        }
+
+        // Initialize app
+        console.log('🚀 Velmora initialized with new UI');
+        addRecentActivity('New Velmora UI loaded successfully', 'success');
     </script>
-    <script>
-// Global variables
-let currentLanguage = 'english';
-let currentMood = null;
-let currentPlaylist = [];
-let currentTrackIndex = 0;
-let isScraping = false;
-let useEmbeddedMode = true; // Toggle between embedded and direct play
-
-// Language-specific song databases with working audio URLs
-const songDatabases = {
-  english: {
-    happy: [
-      { title: "Happy", artist: "Pharrell Williams", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
-      { title: "Good Life", artist: "OneRepublic", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
-      { title: "Walking on Sunshine", artist: "Katrina & The Waves", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" }
-    ],
-    sad: [
-      { title: "Mad World", artist: "Gary Jules", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" },
-      { title: "Hallelujah", artist: "Jeff Buckley", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" }
-    ],
-    romantic: [
-      { title: "Perfect", artist: "Ed Sheeran", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" },
-      { title: "All of Me", artist: "John Legend", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" }
-    ],
-    energetic: [
-      { title: "Eye of the Tiger", artist: "Survivor", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" },
-      { title: "We Will Rock You", artist: "Queen", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" }
-    ],
-    calm: [
-      { title: "Weightless", artist: "Marconi Union", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" },
-      { title: "Claire de Lune", artist: "Debussy", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" }
-    ],
-    party: [
-      { title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" },
-      { title: "Shake It Off", artist: "Taylor Swift", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" }
-    ]
-  },
-  hindi: {
-    happy: [
-      { title: "Bole Chudiyan", artist: "Jatin-Lalit", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
-      { title: "Mast Kalandar", artist: "Various Artists", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" }
-    ],
-    sad: [
-      { title: "Tum Hi Ho", artist: "Arijit Singh", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" },
-      { title: "Raabta", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" }
-    ],
-    romantic: [
-      { title: "Tum Se Hi", artist: "Mohit Chauhan", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" },
-      { title: "Raabta", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" }
-    ],
-    energetic: [
-      { title: "Jai Ho", artist: "A.R. Rahman", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" },
-      { title: "Chak De India", artist: "Salim-Sulaiman", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" }
-    ],
-    calm: [
-      { title: "Agar Tum Saath Ho", artist: "Arijit Singh", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" },
-      { title: "Raabta", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" }
-    ],
-    party: [
-      { title: "Badtameez Dil", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" },
-      { title: "Balam Pichkari", artist: "Pritam", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" }
-    ]
-  },
-  punjabi: {
-    happy: [
-      { title: "Lahore", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" },
-      { title: "High Rated Gabru", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "happy", type: "audio" }
-    ],
-    sad: [
-      { title: "Suit", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" },
-      { title: "Patola", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "sad", type: "audio" }
-    ],
-    romantic: [
-      { title: "Suit", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" },
-      { title: "Patola", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "romantic", type: "audio" }
-    ],
-    energetic: [
-      { title: "Lahore", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" },
-      { title: "High Rated Gabru", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "energetic", type: "audio" }
-    ],
-    calm: [
-      { title: "Suit", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" },
-      { title: "Patola", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "calm", type: "audio" }
-    ],
-    party: [
-      { title: "Lahore", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" },
-      { title: "High Rated Gabru", artist: "Guru Randhawa", url: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", mood: "party", type: "audio" }
-    ]
-  }
-};
-
-// Select language function
-function selectLanguage(language) {
-  // Remove active class from all language buttons
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.style.background = '#6b7280';
-  });
-  
-  // Add active class to selected language button
-  document.querySelector(`[data-lang="${language}"]`).style.background = '#3b82f6';
-  
-  currentLanguage = language;
-  console.log(`Selected language: ${language}`);
-  
-  // Clear current playlist if mood is selected
-  if (currentMood) {
-    currentPlaylist = [];
-    document.getElementById('track-list').style.display = 'none';
-    document.getElementById('playlist-info').style.display = 'none';
-  }
-}
-
-// Select mood function
-function selectMood(mood) {
-  // Remove active class from all mood buttons
-  document.querySelectorAll('.mood-btn').forEach(btn => {
-    btn.style.opacity = '0.7';
-  });
-  
-  // Add active class to selected button
-  document.querySelector(`[data-mood="${mood}"]`).style.opacity = '1';
-  
-  currentMood = mood;
-  console.log(`Selected ${mood} mood for ${currentLanguage} language`);
-}
-
-// Search songs function
-async function searchSongs() {
-  const searchTerm = document.getElementById('song-search').value.trim();
-  if (!searchTerm) {
-    alert('Please enter a search term!');
-    return;
-  }
-  
-  showLoading(true);
-  
-  try {
-    // Simulate API call to search for songs
-    const searchResults = await searchSongsAPI(searchTerm, currentLanguage);
-    currentPlaylist = searchResults;
-    currentTrackIndex = 0;
-    
-    displayPlaylistInfo(`Search Results for "${searchTerm}"`);
-    displayTracks();
-    showLoading(false);
-    
-  } catch (error) {
-    console.error('Search error:', error);
-    alert('Failed to search songs. Please try again.');
-    showLoading(false);
-  }
-}
-
-// Generate mood playlist function
-async function generateMoodPlaylist() {
-  if (!currentMood) {
-    alert('Please select a mood first!');
-    return;
-  }
-  
-  showLoading(true);
-  
-  try {
-    // Simulate API call to generate mood-based playlist
-    const playlist = await generateMoodPlaylistAPI(currentMood, currentLanguage);
-    currentPlaylist = playlist;
-    currentTrackIndex = 0;
-    
-    displayPlaylistInfo(`${currentMood.charAt(0).toUpperCase() + currentMood.slice(1)} Mood Playlist (${currentLanguage})`);
-    displayTracks();
-    showLoading(false);
-    
-  } catch (error) {
-    console.error('Playlist generation error:', error);
-    alert('Failed to generate playlist. Please try again.');
-    showLoading(false);
-  }
-}
-
-// Mock API functions (replace with real API calls)
-async function searchSongsAPI(searchTerm, language) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Simulate search results
-      const allSongs = getAllSongsForLanguage(language);
-      const results = allSongs.filter(song => 
-        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      resolve(results.slice(0, 10)); // Limit to 10 results
-    }, 2000);
-  });
-}
-
-async function generateMoodPlaylistAPI(mood, language) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const moodSongs = songDatabases[language][mood] || [];
-      // Add some random songs from other moods for variety
-      const allSongs = getAllSongsForLanguage(language);
-      const randomSongs = allSongs.filter(song => song.mood !== mood).slice(0, 3);
-      const playlist = [...moodSongs, ...randomSongs];
-      resolve(playlist);
-    }, 3000);
-  });
-}
-
-// Helper function to get all songs for a language
-function getAllSongsForLanguage(language) {
-  const allSongs = [];
-  const languageSongs = songDatabases[language];
-  
-  for (const mood in languageSongs) {
-    allSongs.push(...languageSongs[mood]);
-  }
-  
-  return allSongs;
-}
-
-// Show/hide loading indicator
-function showLoading(show) {
-  const loadingIndicator = document.getElementById('loading-indicator');
-  const generateBtn = document.getElementById('generate-btn');
-  
-  if (show) {
-    loadingIndicator.style.display = 'block';
-    generateBtn.disabled = true;
-    generateBtn.textContent = 'Generating...';
-  } else {
-    loadingIndicator.style.display = 'none';
-    generateBtn.disabled = false;
-    generateBtn.textContent = '🎵 Generate Playlist';
-  }
-}
-
-// Display playlist info
-function displayPlaylistInfo(title) {
-  document.getElementById('playlist-info').style.display = 'block';
-  document.getElementById('current-mood-title').textContent = title;
-  document.getElementById('track-list').style.display = 'block';
-}
-
-// Display tracks function
-function displayTracks() {
-  const container = document.getElementById('tracks-container');
-  
-  if (currentPlaylist.length === 0) {
-    container.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 2rem;">No tracks found</p>';
-    return;
-  }
-  
-  container.innerHTML = currentPlaylist.map((track, index) => `
-    <div style="padding: 0.5rem; border-bottom: 1px solid #374151; cursor: pointer;" 
-         onclick="playTrack(${index})" 
-         onmouseover="this.style.backgroundColor='#374151'" 
-         onmouseout="this.style.backgroundColor='transparent'">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div style="font-weight: bold;">${track.title}</div>
-          <div style="color: #9ca3af; font-size: 0.9rem;">${track.artist}</div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <span style="background: #374151; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${track.mood}</span>
-                             <span style="background: #3b82f6; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; color: white;">${track.type}</span>
-          <button onclick="event.stopPropagation(); playTrack(${index})" style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-            <i class="fas fa-play"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-// Play specific track function
-function playTrack(index) {
-  if (index < 0 || index >= currentPlaylist.length) return;
-
-  currentTrackIndex = index;
-  const track = currentPlaylist[index];
-  const audio = document.getElementById('audio-player');
-  const musicPlayer = document.getElementById('music-player');
-  musicPlayer.style.display = 'block';
-
-  document.getElementById('current-song-title').textContent = track.title;
-  document.getElementById('current-song-artist').textContent = track.artist;
-
-  // Remove previous event listeners to avoid stacking
-  audio.oncanplay = null;
-  audio.onerror = null;
-  audio.onended = null;
-
-  audio.src = track.url;
-  audio.load();
-
-  audio.oncanplay = function() {
-    audio.play().then(() => {
-      showNotification(`🎵 Now playing: ${track.title} by ${track.artist}`, 'success');
-      const playPauseBtn = document.getElementById('play-pause-btn');
-      playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-      playPauseBtn.onclick = togglePlayPause;
-    }).catch(error => {
-      showNotification('Error playing track. Skipping to next...', 'warning');
-      nextTrack();
-    });
-  };
-
-  audio.onerror = function() {
-    showNotification('Audio file not available. Skipping to next...', 'warning');
-    setTimeout(() => {
-      nextTrack();
-    }, 1000);
-  };
-
-  audio.onended = function() {
-    nextTrack();
-  };
-
-  updateCurrentTrackDisplay();
-}
-
-// Toggle play mode function (now for audio quality)
-function togglePlayMode() {
-  useEmbeddedMode = !useEmbeddedMode;
-  const modeBtn = document.getElementById('play-mode-btn');
-  
-  if (useEmbeddedMode) {
-    modeBtn.textContent = '🎵 High Quality Audio';
-    modeBtn.style.background = '#7c3aed';
-    showNotification('Switched to High Quality Audio Mode', 'success');
-  } else {
-    modeBtn.textContent = '🔊 Standard Audio';
-    modeBtn.style.background = '#059669';
-    showNotification('Switched to Standard Audio Mode', 'success');
-  }
-}
-
-// Alternative play function that tries multiple approaches
-function playTrackAlternative(index) {
-  if (index < 0 || index >= currentPlaylist.length) return;
-  
-  currentTrackIndex = index;
-  const track = currentPlaylist[index];
-  
-  // Try direct YouTube link first
-  const videoId = track.url;
-  const directUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  
-  // Show notification
-  showNotification(`🎵 Opening: ${track.title}`, 'info');
-  
-  // Open in new tab as fallback
-  setTimeout(() => {
-    window.open(directUrl, '_blank');
-  }, 1000);
-  
-  updateCurrentTrackDisplay();
-}
-
-// Audio player controls
-function togglePlayPause() {
-  const audio = document.getElementById('audio-player');
-  const playPauseBtn = document.getElementById('play-pause-btn');
-  
-  if (audio.paused) {
-    audio.play();
-    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-  } else {
-    audio.pause();
-    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-  }
-}
-
-// Previous track function
-function previousTrack() {
-  if (currentTrackIndex > 0) {
-    playTrack(currentTrackIndex - 1);
-  }
-}
-
-// Next track function
-function nextTrack() {
-  if (currentTrackIndex < currentPlaylist.length - 1) {
-    playTrack(currentTrackIndex + 1);
-  }
-}
-
-// Seek to position function
-function seekTo(event) {
-  const audio = document.getElementById('audio-player');
-  const progressBar = event.currentTarget;
-  const rect = progressBar.getBoundingClientRect();
-  const percent = (event.clientX - rect.left) / rect.width;
-  
-  if (audio.duration) {
-    audio.currentTime = percent * audio.duration;
-  }
-}
-
-// Toggle play/pause function
-function togglePlayPause() {
-  const iframe = document.getElementById('embedded-video');
-  const playPauseBtn = document.getElementById('play-pause-btn');
-  
-  if (iframe) {
-    // Send message to iframe to play/pause
-    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-    
-    // Toggle button state
-    if (playPauseBtn.innerHTML.includes('play')) {
-      playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-    } else {
-      playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-    }
-  }
-}
-
-// Previous track function
-function previousTrack() {
-  if (currentTrackIndex > 0) {
-    playTrack(currentTrackIndex - 1);
-  }
-}
-
-// Next track function
-function nextTrack() {
-  if (currentTrackIndex < currentPlaylist.length - 1) {
-    playTrack(currentTrackIndex + 1);
-  }
-}
-
-// Seek to position function
-function seekTo(event) {
-  const progressBar = event.currentTarget;
-  const rect = progressBar.getBoundingClientRect();
-  const percent = (event.clientX - rect.left) / rect.width;
-  
-  const iframe = document.getElementById('embedded-video');
-  if (iframe) {
-    // Send seek command to iframe
-    iframe.contentWindow.postMessage(`{"event":"command","func":"seekTo","args":[${Math.floor(percent * 100)}]}`, '*');
-  }
-}
-
-// Show notification function
-function showNotification(message, type = 'info') {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    z-index: 1000;
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
-  `;
-  notification.textContent = message;
-  
-  document.body.appendChild(notification);
-  
-  // Animate in
-  setTimeout(() => {
-    notification.style.transform = 'translateX(0)';
-  }, 100);
-  
-  // Remove after 3 seconds
-  setTimeout(() => {
-    notification.style.transform = 'translateX(400px)';
-    setTimeout(() => {
-      document.body.removeChild(notification);
-    }, 300);
-  }, 3000);
-}
-
-// Play mood playlist function
-function playMoodPlaylist() {
-  if (!currentMood || currentPlaylist.length === 0) {
-    alert('Please select a mood and generate playlist first!');
-    return;
-  }
-  
-  playTrack(0);
-}
-
-// Update current track display
-function updateCurrentTrackDisplay() {
-  const tracks = document.querySelectorAll('#tracks-container > div');
-  tracks.forEach((track, index) => {
-    if (index === currentTrackIndex) {
-      track.style.backgroundColor = '#3b82f6';
-      track.style.color = 'white';
-    } else {
-      track.style.backgroundColor = 'transparent';
-      track.style.color = 'inherit';
-    }
-  });
-}
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  const audio = document.getElementById('audio-player');
-  
-  // Auto-play next track when current ends
-  audio.addEventListener('ended', function() {
-    currentTrackIndex++;
-    if (currentTrackIndex < currentPlaylist.length) {
-      playTrack(currentTrackIndex);
-    }
-  });
-  
-  // Update progress bar and time display
-  audio.addEventListener('timeupdate', function() {
-    const progressBar = document.getElementById('progress-bar');
-    const currentTime = document.getElementById('current-time');
-    const totalTime = document.getElementById('total-time');
-    
-    if (audio.duration && !isNaN(audio.duration)) {
-      const progress = (audio.currentTime / audio.duration) * 100;
-      progressBar.style.width = progress + '%';
-      
-      currentTime.textContent = formatTime(audio.currentTime);
-      totalTime.textContent = formatTime(audio.duration);
-    }
-  });
-  
-  // Handle loadedmetadata event for duration
-  audio.addEventListener('loadedmetadata', function() {
-    const totalTime = document.getElementById('total-time');
-    if (audio.duration && !isNaN(audio.duration)) {
-      totalTime.textContent = formatTime(audio.duration);
-    }
-  });
-  
-  // Handle canplay event
-  audio.addEventListener('canplay', function() {
-    const totalTime = document.getElementById('total-time');
-    if (audio.duration && !isNaN(audio.duration)) {
-      totalTime.textContent = formatTime(audio.duration);
-    }
-  });
-  
-  // Handle volume control
-  const volumeControl = document.getElementById('volume-control');
-  volumeControl.addEventListener('input', function() {
-    audio.volume = this.value / 100;
-  });
-  
-  // Handle search input enter key
-  document.getElementById('song-search').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      searchSongs();
-    }
-  });
-  
-  // Set initial volume
-  audio.volume = 0.5;
-  
-  console.log('Mood Playlist initialized with audio-only support');
-});
-
-// Format time function
-function formatTime(seconds) {
-  if (isNaN(seconds) || seconds === Infinity) {
-    return '0:00';
-  }
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-</script>
 </body>
 </html> 
