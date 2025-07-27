@@ -464,6 +464,64 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
+// E-commerce scraping endpoint
+app.get('/api/scrape/ecommerce', async (req, res) => {
+  try {
+    const apikey = process.env.AMAZON_API_KEY;
+    const rapidApiHost = process.env.RAPIDAPI_HOST;
+    
+    if (!apikey || !rapidApiHost) {
+      throw new Error('Amazon API credentials not configured');
+    }
+    
+    const query = req.query.query || 'Phone'; // Use query parameter or default to 'Phone'
+    
+    const options = {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': apikey,
+        'X-RapidAPI-Host': rapidApiHost,
+      }
+    };
+    
+    const API_URL = `https://real-time-amazon-data.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&country=US&sort_by=RELEVANCE&product_condition=ALL&is_prime=false&deals_and_discounts=NONE`;
+    
+    const response = await fetch(API_URL, options);
+    const result = await response.json();
+    
+    res.json({
+      success: true,
+      data: result.data,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('E-commerce API error:', error.message);
+    
+    // Mock ecommerce data as fallback
+    const mockEcommerce = [
+      {
+        product_title: "iPhone 15 Pro Max",
+        product_price: "1199.00",
+        asin: "B0C1234567",
+        product_photo: "https://example.com/iphone.jpg"
+      },
+      {
+        product_title: "Samsung Galaxy S24",
+        product_price: "999.00", 
+        asin: "B0C7654321",
+        product_photo: "https://example.com/samsung.jpg"
+      }
+    ];
+    
+    res.json({
+      success: true,
+      data: mockEcommerce,
+      message: 'Using mock data - API error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Custom scraping endpoint
 app.post('/api/scrape/custom', (req, res) => {
   const { url, selectors } = req.body;
