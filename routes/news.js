@@ -1,3 +1,4 @@
+console.log("news route loaded");
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const router = express.Router();

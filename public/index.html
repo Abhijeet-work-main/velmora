@@ -1364,27 +1364,55 @@
                 });
         }
 
+        // Enhanced ecommerce search with synonym support
         function handleEcommerceSearch() {
             const query = ecommerceQueryInput.value.trim();
             if (!query) return showNotification('Please enter a product name.', 'error');
             
-            ecommerceResultsContainer.innerHTML = '<div class="text-center py-8"><div class="loader"></div><p class="opacity-60 mt-2">Searching products...</p></div>';
-            showNotification(`Searching for "${query}"...`);
+            // Show loading state with enhanced UI
+            ecommerceResultsContainer.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="loader"></div>
+                    <p class="opacity-60 mt-2">Searching for "${query}"...</p>
+                    <p class="text-xs opacity-40 mt-1">Smart search enabled - we'll find the best matches!</p>
+                </div>
+            `;
+            showNotification(`🔍 Smart searching for "${query}"...`, 'info');
             
             fetch(`/api/scrape/ecommerce?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        renderEcommerce(data.data, ecommerceResultsContainer);
-                        showNotification(`Products found for "${query}"`, 'success');
-                        addRecentActivity(`E-commerce search completed for: <strong>${query}</strong>`, 'success');
+                        const productCount = Array.isArray(data.data) ? data.data.length : 0;
+                        renderEcommerce(data.data, ecommerceResultsContainer, query);
+                        
+                        if (productCount > 0) {
+                            showNotification(`✅ Found ${productCount} products for "${query}"`, 'success');
+                            addRecentActivity(`E-commerce search: <strong>${productCount} products</strong> found for "${query}"`, 'success');
+                        } else {
+                            showNotification(`No products found for "${query}"`, 'warning');
+                            addRecentActivity(`E-commerce search: <strong>No products</strong> found for "${query}"`, 'warning');
+                        }
                     } else {
-                        ecommerceResultsContainer.innerHTML = `<p class="text-red-400 text-center">${data.message}</p>`;
+                        ecommerceResultsContainer.innerHTML = `
+                            <div class="text-center py-8">
+                                <div class="text-red-400 text-lg mb-2">⚠️ Search Error</div>
+                                <p class="text-red-400">${data.message}</p>
+                                <button onclick="handleEcommerceSearch()" class="btn-secondary mt-4">Try Again</button>
+                            </div>
+                        `;
                         showNotification(data.message, 'error');
                     }
                 })
                 .catch(error => {
-                    ecommerceResultsContainer.innerHTML = '<p class="text-red-400 text-center">Failed to search products</p>';
+                    console.error('Ecommerce search error:', error);
+                    ecommerceResultsContainer.innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="text-red-400 text-lg mb-2">⚠️ Connection Error</div>
+                            <p class="text-red-400">Failed to search products. Please check your connection.</p>
+                            <button onclick="handleEcommerceSearch()" class="btn-secondary mt-4">Retry Search</button>
+                        </div>
+                    `;
                     showNotification('Failed to search products', 'error');
                 });
         }
@@ -1434,6 +1462,31 @@
         if (ecommerceSearchBtn) {
             ecommerceSearchBtn.addEventListener('click', handleEcommerceSearch);
         }
+        
+        // Add quick search suggestions
+        function addQuickSearchSuggestions() {
+            const suggestions = ['phone', 'laptop', 'headphones', 'tv', 'camera', 'watch'];
+            const suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'flex flex-wrap gap-2 mt-2';
+            suggestionsContainer.innerHTML = suggestions.map(suggestion => `
+                <button onclick="quickSearch('${suggestion}')" 
+                        class="px-3 py-1 text-xs bg-gray-100 hover:bg-purple-100 rounded-full transition-colors">
+                    ${suggestion}
+                </button>
+            `).join('');
+            
+            // Insert after the search input
+            const searchContainer = ecommerceQueryInput.parentElement;
+            if (searchContainer && !searchContainer.querySelector('.flex.flex-wrap')) {
+                searchContainer.appendChild(suggestionsContainer);
+            }
+        }
+        
+        // Quick search function
+        function quickSearch(query) {
+            ecommerceQueryInput.value = query;
+            handleEcommerceSearch();
+        }
 
         if (generatePlaylistBtn) {
             generatePlaylistBtn.addEventListener('click', handlePlaylistGeneration);
@@ -1467,6 +1520,11 @@
         if (ecommerceQueryInput) {
             ecommerceQueryInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') handleEcommerceSearch();
+            });
+            
+            // Add smart suggestions on focus
+            ecommerceQueryInput.addEventListener('focus', () => {
+                showNotification('💡 Try searching for: phone, laptop, headphones, tv, or any product!', 'info');
             });
         }
 
@@ -1536,19 +1594,81 @@
             `).join('');
         }
 
-        function renderEcommerce(data, container) {
+        // Enhanced ecommerce renderer with better product display
+        function renderEcommerce(data, container, searchQuery = '') {
             if (!data || (Array.isArray(data) && data.length === 0)) {
-                return container.innerHTML = '<p class="text-center opacity-60">No products found.</p>';
+                return container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-4">🔍</div>
+                        <h3 class="text-lg font-semibold mb-2">No products found</h3>
+                        <p class="opacity-60 mb-4">We couldn't find any products for "${searchQuery}"</p>
+                        <div class="text-sm opacity-40">
+                            <p>💡 Try different keywords like:</p>
+                            <div class="flex flex-wrap justify-center gap-2 mt-2">
+                                <span class="px-2 py-1 bg-gray-100 rounded text-xs">phone</span>
+                                <span class="px-2 py-1 bg-gray-100 rounded text-xs">laptop</span>
+                                <span class="px-2 py-1 bg-gray-100 rounded text-xs">headphones</span>
+                                <span class="px-2 py-1 bg-gray-100 rounded text-xs">tv</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
             
             const products = Array.isArray(data) ? data : [data];
-            container.innerHTML = products.map(product => `
-                <div class="velmora-card bounce-in">
-                    <h4 class="text-lg font-semibold mb-2">${product.product_title || product.title || 'No Title'}</h4>
-                    ${product.product_price ? `<p class="text-xl font-bold text-purple-600 mb-2">$${product.product_price}</p>` : ''}
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm opacity-60">${product.asin || 'N/A'}</span>
-                        ${product.product_url ? `<a href="${product.product_url}" target="_blank" class="btn-secondary text-xs">View Product</a>` : ''}
+            
+            // Add search query info if provided
+            const searchInfo = searchQuery ? `
+                <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-700">
+                        🔍 Showing results for: <strong>"${searchQuery}"</strong>
+                        <span class="text-xs opacity-60 ml-2">(${products.length} products found)</span>
+                    </p>
+                </div>
+            ` : '';
+            
+            container.innerHTML = searchInfo + products.map((product, index) => `
+                <div class="velmora-card bounce-in hover:shadow-lg transition-all duration-300" style="animation-delay: ${index * 0.1}s">
+                    <div class="flex items-start space-x-4">
+                        ${product.product_photo ? `
+                            <img src="${product.product_photo}" alt="${product.product_title || 'Product'}" 
+                                 class="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                 onerror="this.style.display='none'">
+                        ` : `
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                📱
+                            </div>
+                        `}
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-lg font-semibold mb-2 text-gray-800 line-clamp-2">
+                                ${product.product_title || product.title || 'No Title'}
+                            </h4>
+                            ${product.product_price ? `
+                                <p class="text-xl font-bold text-purple-600 mb-2">
+                                    $${product.product_price}
+                                    ${product.product_original_price && product.product_original_price !== product.product_price ? 
+                                        `<span class="text-sm line-through text-gray-400 ml-2">$${product.product_original_price}</span>` : 
+                                        ''
+                                    }
+                                </p>
+                            ` : ''}
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-gray-100 px-2 py-1 rounded">ASIN: ${product.asin || 'N/A'}</span>
+                                    ${product.product_rating ? `
+                                        <span class="text-xs bg-yellow-100 px-2 py-1 rounded">
+                                            ⭐ ${product.product_rating}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                ${product.product_url ? `
+                                    <a href="${product.product_url}" target="_blank" 
+                                       class="btn-secondary text-xs hover:bg-purple-600 hover:text-white transition-colors">
+                                        View Product →
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -1694,6 +1814,11 @@
         // Initialize app
         console.log('🚀 Velmora initialized with new UI');
         addRecentActivity('New Velmora UI loaded successfully', 'success');
+        
+        // Initialize ecommerce section with suggestions after a short delay
+        setTimeout(() => {
+            addQuickSearchSuggestions();
+        }, 1000);
     </script>
 </body>
 </html> 
