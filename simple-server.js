@@ -464,6 +464,92 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
+// E-commerce scraping endpoint
+app.get('/api/scrape/ecommerce', async (req, res) => {
+  try {
+    const apikey = process.env.AMAZON_API_KEY;
+    const rapidApiHost = process.env.RAPIDAPI_HOST;
+    
+    if (!apikey || !rapidApiHost) {
+      throw new Error('Amazon API credentials not configured');
+    }
+    
+    // Synonym mapping for better search results
+    const synonymMap = {
+      phone: 'Phone',
+      mobile: 'Phone',
+      smartphone: 'Phone',
+      laptop: 'Laptop',
+      notebooks: 'Laptop',
+      headphones: 'Headphones',
+      earbuds: 'Headphones',
+      tv: 'Television',
+      television: 'Television',
+      fridge: 'Refrigerator',
+      ac: 'Air Conditioner',
+      washing: 'Washing Machine'
+    };
+    
+    // Helper: clean and normalize query
+    function mapQuery(query) {
+      query = query.toLowerCase().trim();
+      for (let key in synonymMap) {
+        if (query.includes(key)) return synonymMap[key];
+      }
+      return query; // fallback to user input if no match
+    }
+    
+    const rawQuery = req.query.query || 'Phone';
+    const searchQuery = mapQuery(rawQuery);
+    
+    const options = {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': apikey,
+        'X-RapidAPI-Host': rapidApiHost,
+      }
+    };
+    
+    const API_URL = `https://real-time-amazon-data.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&page=1&country=US&sort_by=RELEVANCE&product_condition=ALL&is_prime=false&deals_and_discounts=NONE`;
+    
+    const response = await fetch(API_URL, options);
+    const result = await response.json();
+    
+    console.log(`🔍 E-commerce Query: "${rawQuery}" → "${searchQuery}"`);
+    
+    res.json({
+      success: true,
+      data: result.data || [],
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('E-commerce API error:', error.message);
+    
+    // Mock ecommerce data as fallback
+    const mockEcommerce = [
+      {
+        product_title: "iPhone 15 Pro Max",
+        product_price: "1199.00",
+        asin: "B0C1234567",
+        product_photo: "https://example.com/iphone.jpg"
+      },
+      {
+        product_title: "Samsung Galaxy S24",
+        product_price: "999.00", 
+        asin: "B0C7654321",
+        product_photo: "https://example.com/samsung.jpg"
+      }
+    ];
+    
+    res.json({
+      success: true,
+      data: mockEcommerce,
+      message: 'Using mock data - API error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Custom scraping endpoint
 app.post('/api/scrape/custom', (req, res) => {
   const { url, selectors } = req.body;
