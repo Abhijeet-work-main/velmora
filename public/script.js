@@ -116,12 +116,10 @@ function initializeSocket() {
     socket = io();
     
     socket.on('connect', function() {
-        console.log('🔌 Connected to server');
         showNotification('Connected to Velmora server', 'success');
     });
     
     socket.on('disconnect', function() {
-        console.log('🔌 Disconnected from server');
         showNotification('Connection lost - trying to reconnect...', 'error');
     });
     
@@ -163,8 +161,6 @@ function setupNavigation() {
 }
 
 function switchToSection(sectionName) {
-    console.log(`📍 Switching to section: ${sectionName}`);
-    
     // Hide all sections
     document.querySelectorAll('.page-section').forEach(section => {
         section.classList.remove('active');
@@ -754,8 +750,6 @@ function addRecentActivity(message, type = 'info') {
 
 // Handle scraping updates from Socket.IO
 function handleScrapingUpdate(result) {
-    console.log('📡 Received scraping update:', result);
-    
     if (result.success) {
         showNotification(result.message, 'success');
         addRecentActivity(`Search completed for "${result.query || 'query'}"`, 'success');
@@ -770,16 +764,12 @@ function handleScrapingUpdate(result) {
     }
 }
 
-// Handle custom scraping updates
+// Handle custom scraping updates (simplified)
 function handleCustomScrapingUpdate(result) {
-    console.log('📡 Received custom scraping update:', result);
-    
     if (result.success) {
         showNotification(result.message, 'success');
-        addRecentActivity(`Custom scraping completed for ${result.url}`, 'success');
     } else {
         showNotification(result.message || 'Custom scraping failed', 'error');
-        addRecentActivity('Custom scraping failed', 'error');
     }
 }
 

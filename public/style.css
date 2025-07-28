@@ -337,29 +337,6 @@ body {
     margin: 20px 0;
 }
 
-.chart-period-button,
-.crypto-chart-period-button {
-    background: var(--background-color);
-    border: 1px solid var(--secondary-color);
-    border-radius: var(--border-radius);
-    padding: 8px 16px;
-    margin: 0 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.chart-period-button:hover,
-.crypto-chart-period-button:hover {
-    background: var(--accent-color);
-    color: white;
-}
-
-.chart-period-button.active,
-.crypto-chart-period-button.active {
-    background: var(--primary-color);
-    color: white;
-}
-
 /* ==========================================
    UTILITY CLASSES
    ========================================== */
@@ -377,10 +354,6 @@ body {
 /* Spacing Utilities */
 .section-spacing {
     margin: 32px 0;
-}
-
-.card-spacing {
-    margin: 16px 0;
 }
 
 /* Responsive Utilities */
