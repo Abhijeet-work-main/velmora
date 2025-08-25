@@ -22,6 +22,8 @@ const elements = {
     stockSearchBtn: null,
     cryptoSearchInput: null,
     cryptoSearchBtn: null,
+    newsSearchInput: null,
+    newsSearchBtn: null,
     
     // Content containers
     dashboardSection: null,
@@ -88,6 +90,8 @@ function cacheElements() {
     elements.stockSearchBtn = document.getElementById('stock-search-btn');
     elements.cryptoSearchInput = document.getElementById('crypto-search');
     elements.cryptoSearchBtn = document.getElementById('crypto-search-btn');
+    elements.newsSearchInput = document.getElementById('news-search');
+    elements.newsSearchBtn = document.getElementById('news-search-btn');
     
     // Sections (updated to match new HTML)
     elements.dashboardSection = document.getElementById('dashboard');
@@ -219,6 +223,19 @@ function setupSearchHandlers() {
         elements.cryptoSearchBtn.addEventListener('click', handleCryptoSearch);
     }
     
+    // News search
+    if (elements.newsSearchBtn) {
+        elements.newsSearchBtn.addEventListener('click', handleNewsSearch);
+    }
+    // Enter key support for news search input
+    if (elements.newsSearchInput) {
+        elements.newsSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleNewsSearch();
+            }
+        });
+    }
+    
     // Enter key support for all search inputs
     document.querySelectorAll('.form-input').forEach(input => {
         input.addEventListener('keypress', function(e) {
@@ -302,6 +319,22 @@ async function handleCryptoSearch() {
         console.error('❌ Crypto search error:', error);
         showNotification('Failed to fetch crypto data', 'error');
     }
+}
+
+// News search handler
+function handleNewsSearch() {
+    const query = elements.newsSearchInput?.value.trim();
+    if (!query) {
+        showNotification('Please enter a news search term', 'error');
+        return;
+    }
+    console.log(`📰 News search for: ${query}`);
+    showNotification(`Searching news for "${query}"...`, 'info');
+    // Send search request via Socket.IO
+    socket.emit('scrape_request', {
+        type: 'news',
+        query: query
+    });
 }
 
 /* ==========================================
